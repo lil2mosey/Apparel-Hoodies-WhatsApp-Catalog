@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <path id="musoFaviconArc" d="M 60 200 A 140 140 0 0 1 340 200" fill="none" />
+    <linearGradient id="musoGreenMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="musoGreenDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#065f46" />
+    </linearGradient>
+    <linearGradient id="musoGreenLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <filter id="logoShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background Sand/Beige Outer Base -->
+  <rect width="400" height="400" rx="80" fill="#EAE5DB" />
+  
+  <!-- Main Circular Dark Slate Badge -->
+  <circle cx="200" cy="200" r="165" fill="#1e2530" />
+
+  <!-- Outer Concentric Red Rings -->
+  <circle cx="200" cy="200" r="152" stroke="#d9383a" stroke-width="4.5" stroke-opacity="0.9" />
+  <circle cx="200" cy="200" r="138" stroke="#d9383a" stroke-width="2.5" />
+  <circle cx="200" cy="200" r="130" stroke="#b91c1c" stroke-width="1.5" stroke-opacity="0.6" />
+
+  <!-- Apparel Icons in Arc -->
+  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 1. Hoodie -->
+    <g transform="translate(145, 95) scale(0.72)">
+      <path d="M12 28 C12 12, 36 12, 36 28 Z" fill="#ffffff" />
+      <path d="M6 28 L14 46 L20 46 L18 36 L30 36 L28 46 L34 46 L42 28 Z" fill="#ffffff" />
+      <path d="M18 36 L30 36 L28 44 L20 44 Z" fill="#1e2530" />
+    </g>
+    <!-- 2. Polo Shirt -->
+    <g transform="translate(182, 88) scale(0.75)">
+      <path d="M8 22 L18 20 L24 26 L30 20 L40 22 L36 30 L32 29 L32 46 L16 46 L16 29 L12 30 Z" fill="#ffffff" />
+      <path d="M18 20 L24 28 L21 21 Z" fill="#1e2530" />
+      <path d="M30 20 L24 28 L27 21 Z" fill="#1e2530" />
+      <line x1="24" y1="28" x2="24" y2="35" stroke="#1e2530" stroke-width="1.5" />
+    </g>
+    <!-- 3. Baseball Cap -->
+    <g transform="translate(220, 98) scale(0.72)">
+      <path d="M10 32 C10 18, 34 18, 38 32 Z" fill="#ffffff" />
+      <path d="M8 32 C16 35, 36 34, 44 31 C40 37, 24 38, 8 32 Z" fill="#ffffff" />
+      <circle cx="24" cy="18" r="2" fill="#ffffff" />
+    </g>
+    <!-- 4. Crewneck Sweatshirt -->
+    <g transform="translate(122, 140) scale(0.68)">
+      <path d="M8 20 L16 16 C20 20, 28 20, 32 16 L40 20 L35 34 L30 32 L30 46 L18 46 L18 32 L13 34 Z" fill="#ffffff" />
+    </g>
+    <!-- 5. Plain T-Shirt -->
+    <g transform="translate(252, 140) scale(0.68)">
+      <path d="M10 20 L16 16 C20 19, 28 19, 32 16 L38 20 L34 30 L30 29 L30 46 L18 46 L18 29 L14 30 Z" fill="#ffffff" />
+    </g>
+  </g>
+
+  <!-- Folded 'M' Graphic Monogram (Center) -->
+  <g filter="url(#logoShadow)" transform="translate(0, 10)">
+    <path d="M 156 126 L 185 126 L 185 214 L 156 200 Z" fill="url(#musoGreenMain)" />
+    <path d="M 156 200 L 185 214 L 185 252 L 156 252 Z" fill="url(#musoGreenLight)" />
+    <path d="M 185 126 L 222 226 L 200 246 L 168 160 Z" fill="url(#musoGreenDark)" />
+    <path d="M 200 246 L 230 126 L 256 126 L 216 240 Z" fill="url(#musoGreenMain)" />
+    <path d="M 230 126 L 266 126 L 266 204 L 235 204 Z" fill="url(#musoGreenLight)" />
+    <path d="M 235 184 C 250 180, 266 180, 272 198 L 270 242 C 268 248, 255 252, 242 252 C 230 252, 224 246, 224 238 L 226 192 Z" fill="url(#musoGreenMain)" />
+    <path d="M 238 194 C 248 200, 256 210, 254 236 L 242 250 C 235 250, 232 244, 232 238 Z" fill="url(#musoGreenDark)" />
+    <path d="M 250 226 L 270 226 L 268 248 L 250 248 Z" fill="url(#musoGreenLight)" stroke="#047857" stroke-width="1.5" />
+    <line x1="255" y1="228" x2="255" y2="246" stroke="#065f46" stroke-width="1" />
+    <line x1="260" y1="228" x2="260" y2="246" stroke="#065f46" stroke-width="1" />
+    <line x1="265" y1="228" x2="265" y2="246" stroke="#065f46" stroke-width="1" />
+  </g>
+
+  <!-- Bottom Brand Text -->
+  <text x="200" y="325" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">
+    MUSO APPAREL
+  </text>
+  <circle cx="200" cy="342" r="3" fill="#10b981" />
+</svg>

@@ -321,19 +321,19 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     setTimeout(() => setContactSavedAlert(false), 3000);
   };
 
-  // Change Owner PIN
+  // Change Owner Passlock / PIN
   const handleChangePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPinChangeError('');
     setPinChangeSuccess(false);
 
-    if (currentPinInput !== ownerPin && currentPinInput !== '1234') {
-      setPinChangeError('Current PIN is incorrect.');
+    if (ownerPin && currentPinInput !== ownerPin) {
+      setPinChangeError('Current passlock is incorrect.');
       return;
     }
 
     if (newPinInput.length < 4) {
-      setPinChangeError('New PIN must be at least 4 digits.');
+      setPinChangeError('New passlock must be at least 4 digits or characters.');
       return;
     }
 
@@ -1190,28 +1190,28 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">
-                      Current PIN:
+                      Current Passlock:
                     </label>
                     <input
                       type="password"
                       required
                       value={currentPinInput}
                       onChange={(e) => setCurrentPinInput(e.target.value)}
-                      placeholder="Current PIN (Default: 1234)"
+                      placeholder="Enter current passlock"
                       className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#12161c] border border-[#e5dfd3] dark:border-[#2d3748] text-xs font-mono text-neutral-900 dark:text-white outline-hidden"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">
-                      New Owner PIN:
+                      New Passlock:
                     </label>
                     <input
                       type="password"
                       required
                       value={newPinInput}
                       onChange={(e) => setNewPinInput(e.target.value)}
-                      placeholder="New PIN (min 4 digits)"
+                      placeholder="New passlock (min 4 chars)"
                       className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#12161c] border border-[#e5dfd3] dark:border-[#2d3748] text-xs font-mono text-neutral-900 dark:text-white outline-hidden"
                     />
                   </div>
@@ -1219,9 +1219,9 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
                 <button
                   type="submit"
-                  className="py-2.5 px-5 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white text-xs font-bold transition-all border border-neutral-300 dark:border-neutral-700"
+                  className="py-2.5 px-5 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 text-xs font-bold transition-all shadow-xs"
                 >
-                  Update Owner PIN
+                  Update Master Passlock
                 </button>
               </form>
             </div>

@@ -31,7 +31,7 @@ import { DirectOrderModal } from './components/DirectOrderModal';
 import { SizeGuideModal } from './components/SizeGuideModal';
 import { LogoShowcaseModal } from './components/LogoShowcaseModal';
 import { MusoAdminPortal } from './components/MusoAdminPortal';
-import { OwnerAuthModal, OwnerPinForm } from './components/OwnerAuthModal';
+import { OwnerAuthModal, OwnerPinForm, OwnerSetupPasslockForm } from './components/OwnerAuthModal';
 import { Footer } from './components/Footer';
 import { MobileBottomBar } from './components/MobileBottomBar';
 import { MusoBrandLogo } from './components/MusoBrandLogo';
@@ -90,22 +90,61 @@ export default function App() {
     }
   });
 
-  // Owner PIN (with default fallback '1234')
-  const [ownerPin, setOwnerPin] = useState<string>(() => {
+  // Track if custom master passlock has been configured
+  const [isOwnerPinCreated, setIsOwnerPinCreated] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('muso_owner_pin') || '1234';
+      const pin = localStorage.getItem('muso_owner_pin');
+      const isSet = localStorage.getItem('muso_owner_pin_created');
+      return Boolean(isSet === 'true' && pin && pin.length >= 4);
     } catch {
-      return '1234';
+      return false;
     }
   });
 
-  const handleUpdateOwnerPin = (newPin: string) => {
+  // Owner PIN / Passlock
+  const [ownerPin, setOwnerPin] = useState<string>(() => {
+    try {
+      return localStorage.getItem('muso_owner_pin') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const handleSetOwnerPasslock = (newPin: string) => {
     setOwnerPin(newPin);
+    setIsOwnerPinCreated(true);
+    setIsOwnerAuthenticated(true);
     try {
       localStorage.setItem('muso_owner_pin', newPin);
+      localStorage.setItem('muso_owner_pin_created', 'true');
+      sessionStorage.setItem('muso_owner_authenticated', 'true');
     } catch {
       // ignore
     }
+  };
+
+  const handleUpdateOwnerPin = (newPin: string) => {
+    setOwnerPin(newPin);
+    setIsOwnerPinCreated(true);
+    try {
+      localStorage.setItem('muso_owner_pin', newPin);
+      localStorage.setItem('muso_owner_pin_created', 'true');
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleResetOwnerPasslockSetup = () => {
+    try {
+      localStorage.removeItem('muso_owner_pin');
+      localStorage.removeItem('muso_owner_pin_created');
+      sessionStorage.removeItem('muso_owner_authenticated');
+    } catch {
+      // ignore
+    }
+    setOwnerPin('');
+    setIsOwnerPinCreated(false);
+    setIsOwnerAuthenticated(false);
   };
 
   // View Mode: 'customer' | 'admin'
@@ -374,7 +413,7 @@ export default function App() {
   // VIEW MODE: ADMIN (OWNER PORTAL)
   // =========================================================================
   if (viewMode === 'admin') {
-    // If not authenticated, render dedicated in-page PIN Unlock Screen
+    // If not authenticated, render dedicated in-page PIN Unlock or First-Time Setup Screen
     if (!isOwnerAuthenticated) {
       return (
         <div className="min-h-screen bg-[#F9F8F3] dark:bg-[#11151c] flex flex-col font-sans text-neutral-900 dark:text-neutral-100 transition-colors duration-200 selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900">
@@ -404,27 +443,39 @@ export default function App() {
             </div>
           </div>
 
-          {/* Centered Login Card */}
+          {/* Centered Login / Setup Card */}
           <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
             <div className="w-full max-w-md bg-white dark:bg-[#1a202c] rounded-3xl shadow-2xl border border-[#dfd7c9] dark:border-[#2d3748] p-6 sm:p-8 space-y-6">
               <div className="text-center space-y-2">
-                <div className="inline-flex p-3 rounded-2xl bg-[#EAE5DB] dark:bg-[#262e3b] border border-[#d8d0c3] dark:border-[#374151]">
-                  <Lock className="w-6 h-6 text-neutral-900 dark:text-white" />
+                <div className="flex justify-center mb-1">
+                  <div className="w-16 h-16 rounded-2xl bg-[#EAE5DB] dark:bg-[#232a35] border border-[#d8d0c3] dark:border-[#374151] flex items-center justify-center p-1.5 shadow-xs overflow-hidden">
+                    <MusoBrandLogo className="w-full h-full object-contain" />
+                  </div>
                 </div>
                 <h1 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white font-heading">
-                  Muso Owner Studio
+                  {isOwnerPinCreated ? 'Muso Owner Studio' : 'Create Admin Passlock'}
                 </h1>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-xs mx-auto">
-                  Owner management portal to update prices, add product photography, generate mockups, and configure WhatsApp ordering.
+                  {isOwnerPinCreated
+                    ? 'Enter your private master passlock to unlock owner management, prices, and photo assets.'
+                    : 'Set up your secret admin passlock before entering the Studio for the first time. This key protects your catalog.'}
                 </p>
               </div>
 
-              {/* Owner Passcode Form */}
-              <OwnerPinForm
-                onSuccess={handleOwnerAuthSuccess}
-                correctPin={ownerPin}
-                onReturnToStore={handleSwitchToCustomerView}
-              />
+              {/* Owner Passcode Form: First-Time Setup or Existing PIN Unlock */}
+              {isOwnerPinCreated ? (
+                <OwnerPinForm
+                  onSuccess={handleOwnerAuthSuccess}
+                  correctPin={ownerPin}
+                  onReturnToStore={handleSwitchToCustomerView}
+                  onResetSetup={handleResetOwnerPasslockSetup}
+                />
+              ) : (
+                <OwnerSetupPasslockForm
+                  onSetPasslock={handleSetOwnerPasslock}
+                  onReturnToStore={handleSwitchToCustomerView}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -749,6 +800,9 @@ export default function App() {
         onClose={() => setIsOwnerAuthModalOpen(false)}
         onSuccess={handleOwnerAuthSuccess}
         correctPin={ownerPin}
+        isPinCreated={isOwnerPinCreated}
+        onSetPasslock={handleSetOwnerPasslock}
+        onResetSetup={handleResetOwnerPasslockSetup}
       />
 
       {/* Footer */}

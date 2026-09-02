@@ -52,12 +52,13 @@ import { MusoBrandLogo } from './MusoBrandLogo';
 import { COMMON_COLORS, CATEGORIES } from '../data/products';
 import { compressAndResizeImage, uploadImageToServer } from '../utils/imageStorage';
 import { saveCustomPhotoOverride } from '../assets/images';
+import { FIRESTORE_DATABASE_ID } from '../lib/firebase';
 import { 
   saveProductToFirestore, 
   deleteProductFromFirestore,
   savePhotoAssetToFirestore, 
   deletePhotoAssetFromFirestore, 
-  directCloudServerSync, 
+  directFirestoreSync,
   saveAllPhotoAssetsToFirestore, 
   saveAllProductsToFirestore 
 } from '../services/firestoreService';
@@ -127,43 +128,43 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
   const [uploadSuccessNotification, setUploadSuccessNotification] = useState<string | null>(null);
   const [uploadTargetProductId, setUploadTargetProductId] = useState<string | undefined>(undefined);
 
-  // Manual & Auto Cloud Server Sync States
+  // Manual & Auto Firestore Database Sync States
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStepText, setSyncStepText] = useState('');
   const [syncCompleted, setSyncCompleted] = useState(false);
   const [syncSummary, setSyncSummary] = useState<{ photosSynced: number; productsSynced: number } | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [lastCloudSyncTime, setLastCloudSyncTime] = useState<Date | null>(() => {
-    const saved = localStorage.getItem('muso_last_cloud_sync');
+  const [lastFirestoreSyncTime, setLastFirestoreSyncTime] = useState<Date | null>(() => {
+    const saved = localStorage.getItem('muso_last_firestore_sync');
     return saved ? new Date(parseInt(saved, 10)) : null;
   });
   const [autoSyncBadge, setAutoSyncBadge] = useState<string | null>(null);
 
   const triggerAutoSyncNotification = (msg: string) => {
     const now = new Date();
-    setLastCloudSyncTime(now);
-    localStorage.setItem('muso_last_cloud_sync', now.getTime().toString());
+    setLastFirestoreSyncTime(now);
+    localStorage.setItem('muso_last_firestore_sync', now.getTime().toString());
     setAutoSyncBadge(msg);
     setTimeout(() => setAutoSyncBadge(null), 4500);
   };
 
-  const handleManualCloudSync = async () => {
+  const handleManualFirestoreSync = async () => {
     setIsSyncModalOpen(true);
     setIsSyncing(true);
     setSyncCompleted(false);
     setSyncProgress(10);
-    setSyncStepText('Connecting to Google Cloud Firestore & server backend...');
+    setSyncStepText(`Connecting to Firestore Database (${FIRESTORE_DATABASE_ID})...`);
 
     try {
-      const result = await directCloudServerSync(photoAssets, products, (step, current, total) => {
+      const result = await directFirestoreSync(photoAssets, products, (step, current, total) => {
         const pct = Math.min(95, Math.max(10, Math.round((current / Math.max(total, 1)) * 95)));
         setSyncProgress(pct);
         setSyncStepText(step);
       });
 
       setSyncProgress(100);
-      setSyncStepText('All images and products permanently saved to Cloud!');
+      setSyncStepText('All images and products permanently saved to Firestore Database!');
       setSyncCompleted(true);
       setSyncSummary({
         photosSynced: result.photosSynced,
@@ -171,11 +172,11 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       });
 
       const now = new Date();
-      setLastCloudSyncTime(now);
-      localStorage.setItem('muso_last_cloud_sync', now.getTime().toString());
+      setLastFirestoreSyncTime(now);
+      localStorage.setItem('muso_last_firestore_sync', now.getTime().toString());
     } catch (err: any) {
-      console.error('Manual cloud sync error:', err);
-      setSyncStepText(`Sync notice: ${err?.message || 'Cloud write in progress'}. Retrying...`);
+      console.error('Manual Firestore sync error:', err);
+      setSyncStepText(`Sync notice: ${err?.message || 'Firestore write in progress'}. Retrying...`);
     } finally {
       setIsSyncing(false);
     }
@@ -238,9 +239,9 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       const updated = products.filter(p => p.id !== id);
       onSaveProducts(updated);
       deleteProductFromFirestore(id).catch((err) => {
-        console.warn('Cloud delete product error:', err);
+        console.warn('Firestore delete product error:', err);
       });
-      triggerAutoSyncNotification('Product removed from Cloud catalog.');
+      triggerAutoSyncNotification('Product removed from Firestore catalog.');
     }
   };
 
@@ -282,7 +283,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       updated = [editingProduct, ...products];
     }
 
-    const effectivePhoto = editingProduct.uploadedImageUrl || (editingProduct.image && (editingProduct.image.startsWith('data:image/') || editingProduct.image.startsWith('/uploads/') || editingProduct.image.startsWith('http')) ? editingProduct.image : undefined);
+    const effectivePhoto = editingProduct.uploadedImageUrl || (editingProduct.image && (editingProduct.image.startsWith('data:image/') || editingProduct.image.startsWith('http')) ? editingProduct.image : undefined);
     if (effectivePhoto) {
       saveCustomPhotoOverride(editingProduct.id, effectivePhoto);
     }
@@ -291,7 +292,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     saveProductToFirestore(editingProduct).catch((err) => {
       console.warn('Direct product firestore save error:', err);
     });
-    triggerAutoSyncNotification(`Product "${editingProduct.name}" saved directly to Cloud!`);
+    triggerAutoSyncNotification(`Product "${editingProduct.name}" saved directly to Firestore Database!`);
     setIsProductModalOpen(false);
     setEditingProduct(null);
   };
@@ -375,11 +376,11 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
       const updatedAssets = [newAsset, ...photoAssets];
       onSavePhotoAssets(updatedAssets);
-      // Directly persist photo asset to Cloud Firestore
+      // Directly persist photo asset to Firestore Database
       savePhotoAssetToFirestore(newAsset).catch((err) => {
         console.warn('Direct photo asset firestore sync notice:', err);
       });
-      triggerAutoSyncNotification(`Photo "${newAsset.name}" auto-uploaded & saved to Cloud Server!`);
+      triggerAutoSyncNotification(`Photo "${newAsset.name}" auto-uploaded & saved to Firestore Database!`);
 
       // If uploaded directly in product editor modal
       if (editingProduct) {
@@ -432,10 +433,10 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
           });
           onSaveProducts(updated);
           const matchedNames = matched.map(m => m.name).join(', ');
-          setUploadSuccessNotification(`Photo auto-matched and saved to Cloud for: ${matchedNames}!`);
+          setUploadSuccessNotification(`Photo auto-matched and saved to Firestore Database for: ${matchedNames}!`);
           setTimeout(() => setUploadSuccessNotification(null), 5000);
         } else {
-          setUploadSuccessNotification(`Photo "${file.name}" saved to Cloud Photo Library. Select "Assign to Product" below to show on storefront.`);
+          setUploadSuccessNotification(`Photo "${file.name}" saved to Firestore Photo Library. Select "Assign to Product" below to show on storefront.`);
           setTimeout(() => setUploadSuccessNotification(null), 4000);
         }
       }
@@ -487,11 +488,11 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
     onSavePhotoAssets([newAsset, ...photoAssets]);
     savePhotoAssetToFirestore(newAsset).catch((err) => {
-      console.warn('Cloud save photo asset error:', err);
+      console.warn('Firestore save photo asset error:', err);
     });
-    triggerAutoSyncNotification(`Photo URL saved directly to Cloud Server!`);
+    triggerAutoSyncNotification(`Photo URL saved directly to Firestore Database!`);
     setPhotoUrlInput('');
-    setUploadSuccessNotification('Image URL added and saved to Cloud photo library.');
+    setUploadSuccessNotification('Image URL added and saved to Firestore photo library.');
     setTimeout(() => setUploadSuccessNotification(null), 3500);
   };
 
@@ -500,9 +501,9 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     if (window.confirm('Delete this photo asset from your library?')) {
       onSavePhotoAssets(photoAssets.filter(a => a.id !== id));
       deletePhotoAssetFromFirestore(id).catch((err) => {
-        console.warn('Cloud delete photo asset error:', err);
+        console.warn('Firestore delete photo asset error:', err);
       });
-      triggerAutoSyncNotification('Photo removed from Cloud library.');
+      triggerAutoSyncNotification('Photo removed from Firestore library.');
     }
   };
 
@@ -525,7 +526,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     });
     saveCustomPhotoOverride(productId, photoUrl);
     onSaveProducts(updated);
-    triggerAutoSyncNotification(`Photo assigned to "${targetProduct?.name || 'Item'}" & saved to Cloud!`);
+    triggerAutoSyncNotification(`Photo assigned to "${targetProduct?.name || 'Item'}" & saved to Firestore Database!`);
     setUploadSuccessNotification(`Photo assigned to "${targetProduct?.name || 'Item'}" and updated on customer storefront!`);
     setTimeout(() => setUploadSuccessNotification(null), 4000);
   };
@@ -554,7 +555,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       return p;
     });
     onSaveProducts(updated);
-    triggerAutoSyncNotification(`Photo applied to ${matched.length} similar products & saved to Cloud!`);
+    triggerAutoSyncNotification(`Photo applied to ${matched.length} similar products & saved to Firestore Database!`);
     setUploadSuccessNotification(`Photo applied to all matching items (${matched.map(m => m.name).join(', ')}) on customer store!`);
     setTimeout(() => setUploadSuccessNotification(null), 5000);
   };
@@ -617,7 +618,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     savePhotoAssetToFirestore(newAsset).catch((err) => {
       console.warn('Mockup save to firestore notice:', err);
     });
-    triggerAutoSyncNotification(`Mockup graphic saved to Cloud Library!`);
+    triggerAutoSyncNotification(`Mockup graphic saved to Firestore Database!`);
     setMockupCreatedAlert(true);
     setTimeout(() => setMockupCreatedAlert(false), 3000);
   };
@@ -714,19 +715,19 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
             </button>
           </div>
 
-          {/* Right Action Controls: Save to Cloud, Theme Toggle, Preview Customer Store, Lock */}
+          {/* Right Action Controls: Save to Firestore, Theme Toggle, Preview Customer Store, Lock */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Manual Cloud Server Sync Button */}
+            {/* Manual Firestore Database Sync Button */}
             <button
               id="admin-cloud-sync-btn"
               type="button"
-              onClick={handleManualCloudSync}
+              onClick={handleManualFirestoreSync}
               disabled={isSyncing}
               className="flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700/60 transition-all font-bold text-xs active:scale-98 shadow-xs"
-              title="Save all photos & products directly to Cloud Server"
+              title="Save all photos & products directly to Firestore Database"
             >
               <CloudUpload className={`w-4 h-4 text-amber-600 dark:text-amber-400 ${isSyncing ? 'animate-bounce' : ''}`} />
-              <span className="hidden sm:inline">Save to Cloud</span>
+              <span className="hidden sm:inline">Save to Firestore</span>
               <span className="text-[10px] bg-amber-600 dark:bg-amber-500 text-white font-black px-1.5 py-0.2 rounded-full">
                 {photoAssets.length}
               </span>
@@ -1091,33 +1092,33 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
         {/* ========================================================================= */}
         {activeTab === 'photos' && (
           <div className="space-y-8 animate-in fade-in duration-200">
-            {/* Cloud Server Photo Storage & Manual Sync Hub */}
+            {/* Firestore Database Photo Storage & Manual Sync Hub */}
             <div className="bg-gradient-to-br from-[#FAF8F5] via-white to-amber-50/40 dark:from-[#1a202c] dark:via-[#161b24] dark:to-amber-950/20 p-6 sm:p-7 rounded-3xl border-2 border-amber-300/80 dark:border-amber-700/60 shadow-sm space-y-5">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1.5">
                   <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-amber-900 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-3 py-1 rounded-full border border-amber-300 dark:border-amber-800">
                     <Cloud className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                    <span>Cloud Server Photo Storage & Direct Sync Hub</span>
+                    <span>Firestore Database Photo Storage & Direct Sync Hub</span>
                   </div>
                   <h2 className="text-xl font-black tracking-tight font-heading text-neutral-900 dark:text-white">
-                    Direct Cloud Image Storage & Manual Sync
+                    Direct Firestore Image Storage & Manual Sync
                   </h2>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed">
-                    Uploaded photos auto-save to Cloud Firestore immediately. Use <strong>&quot;Save All Images to Cloud Server&quot;</strong> at any time to guarantee 100% of images and products are committed directly to Google Cloud Firestore and server storage with zero chance of data loss.
+                    Uploaded photos auto-save to the Firestore Database immediately. Use <strong>&quot;Save All to Firestore Database&quot;</strong> at any time to guarantee 100% of images and products are committed directly to Firestore ({FIRESTORE_DATABASE_ID}) with zero chance of data loss.
                   </p>
                 </div>
 
-                {/* Primary Manual Cloud Sync Button */}
+                {/* Primary Manual Firestore Sync Button */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
                   <button
                     id="admin-photo-studio-sync-cloud-btn"
                     type="button"
-                    onClick={handleManualCloudSync}
+                    onClick={handleManualFirestoreSync}
                     disabled={isSyncing}
                     className="flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-black text-xs shadow-md hover:shadow-lg transition-all"
                   >
                     <CloudUpload className={`w-4 h-4 ${isSyncing ? 'animate-bounce' : ''}`} />
-                    <span>{isSyncing ? 'Saving to Cloud Server...' : 'Save All Images to Cloud Server'}</span>
+                    <span>{isSyncing ? 'Saving to Firestore Database...' : 'Save All to Firestore Database'}</span>
                   </button>
                 </div>
               </div>
@@ -1128,7 +1129,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                   <div>
                     <span className="block text-[10px] uppercase font-extrabold text-neutral-400">Database Status</span>
-                    <span className="text-xs font-bold text-neutral-900 dark:text-white">Google Cloud Firestore Active</span>
+                    <span className="text-xs font-bold text-neutral-900 dark:text-white">Firestore Database Active</span>
                   </div>
                 </div>
 
@@ -1136,16 +1137,16 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                   <ImageIcon className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   <div>
                     <span className="block text-[10px] uppercase font-extrabold text-neutral-400">Stored Photo Assets</span>
-                    <span className="text-xs font-bold text-neutral-900 dark:text-white">{photoAssets.length} Photos in Cloud Library</span>
+                    <span className="text-xs font-bold text-neutral-900 dark:text-white">{photoAssets.length} Photos in Firestore</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-white/80 dark:bg-[#12161c]/80 border border-neutral-200/80 dark:border-neutral-800">
                   <RefreshCw className="w-4 h-4 text-neutral-500 shrink-0" />
                   <div>
-                    <span className="block text-[10px] uppercase font-extrabold text-neutral-400">Last Cloud Sync</span>
+                    <span className="block text-[10px] uppercase font-extrabold text-neutral-400">Last Firestore Sync</span>
                     <span className="text-xs font-bold text-neutral-900 dark:text-white">
-                      {lastCloudSyncTime ? lastCloudSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Ready to save'}
+                      {lastFirestoreSyncTime ? lastFirestoreSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Ready to save'}
                     </span>
                   </div>
                 </div>
@@ -1773,7 +1774,7 @@ Please confirm stock availability and M-Pesa payment details!`}
         {/* ========================================================================= */}
         {activeTab === 'backup' && (
           <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in duration-200">
-            {/* Direct Cloud Server Synchronization & Persistence Station */}
+            {/* Direct Firestore Database Synchronization & Persistence Station */}
             <div className="bg-gradient-to-br from-amber-50/70 via-white to-amber-100/40 dark:from-[#1a202c] dark:via-[#161b24] dark:to-amber-950/30 p-6 sm:p-7 rounded-3xl border-2 border-amber-300 dark:border-amber-700/70 shadow-sm space-y-4">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 rounded-2xl bg-amber-600 text-white shadow-xs">
@@ -1781,21 +1782,21 @@ Please confirm stock availability and M-Pesa payment details!`}
                 </div>
                 <div>
                   <h3 className="text-base font-black text-neutral-900 dark:text-white font-heading">
-                    Direct Cloud Server Push & Manual Sync
+                    Direct Firestore Database Push & Manual Sync
                   </h3>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Directly saves 100% of images, products & contact settings to Google Cloud Firestore
+                    Directly saves 100% of images, products & contact settings to Firestore Database ({FIRESTORE_DATABASE_ID})
                   </p>
                 </div>
               </div>
 
               <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                All photos and products auto-upload in the background. Press the button below at any time to execute an explicit, verified synchronization directly with Google Cloud Firestore and server file mirrors, ensuring zero data loss across devices and refreshes.
+                All photos and products auto-upload in the background. Press the button below at any time to execute an explicit, verified synchronization directly with the Firestore Database, ensuring zero data loss across devices and refreshes.
               </p>
 
               <div className="grid grid-cols-2 gap-3 py-1">
                 <div className="bg-white/90 dark:bg-[#12161c]/90 p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 text-center">
-                  <span className="block text-[10px] font-bold text-neutral-400 uppercase">Photos In Cloud</span>
+                  <span className="block text-[10px] font-bold text-neutral-400 uppercase">Photos In Firestore</span>
                   <span className="text-sm font-black text-neutral-900 dark:text-white font-mono">{photoAssets.length} Assets</span>
                 </div>
                 <div className="bg-white/90 dark:bg-[#12161c]/90 p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 text-center">
@@ -1807,12 +1808,12 @@ Please confirm stock availability and M-Pesa payment details!`}
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
-                  onClick={handleManualCloudSync}
+                  onClick={handleManualFirestoreSync}
                   disabled={isSyncing}
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 active:scale-98 text-white text-xs font-black transition-all shadow-md hover:shadow-lg"
                 >
                   <CloudUpload className={`w-4 h-4 ${isSyncing ? 'animate-bounce' : ''}`} />
-                  <span>{isSyncing ? 'Saving to Cloud Server...' : 'Save All Directly to Cloud Server'}</span>
+                  <span>{isSyncing ? 'Saving to Firestore Database...' : 'Save All Directly to Firestore Database'}</span>
                 </button>
 
                 <button
@@ -2242,7 +2243,7 @@ Please confirm stock availability and M-Pesa payment details!`}
         </div>
       )}
 
-      {/* Cloud Direct Sync Progress & Verification Modal */}
+      {/* Firestore Direct Sync Progress & Verification Modal */}
       {isSyncModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#1a202c] border-2 border-amber-400 dark:border-amber-600 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
@@ -2252,12 +2253,12 @@ Please confirm stock availability and M-Pesa payment details!`}
                 <CloudUpload className={`w-8 h-8 ${isSyncing ? 'animate-bounce' : ''}`} />
               </div>
               <h3 className="text-lg font-black text-neutral-900 dark:text-white font-heading">
-                {syncCompleted ? 'Cloud Server Save Complete!' : 'Saving to Google Cloud Server...'}
+                {syncCompleted ? 'Firestore Database Save Complete!' : 'Saving to Firestore Database...'}
               </h3>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 {syncCompleted
-                  ? 'Every photo and product is now permanently stored in Cloud Firestore and ready on all devices.'
-                  : 'Committing image assets, catalog products, and configurations directly to the cloud.'}
+                  ? `Every photo and product is now permanently stored in the Firestore Database (${FIRESTORE_DATABASE_ID}) and ready on all devices.`
+                  : 'Committing image assets, catalog products, and configurations directly to the Firestore database.'}
               </p>
             </div>
 
@@ -2280,7 +2281,7 @@ Please confirm stock availability and M-Pesa payment details!`}
               <div className="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800 text-xs space-y-2 animate-in fade-in">
                 <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-extrabold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Cloud Storage Verified</span>
+                  <span>Firestore Storage Verified</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-neutral-700 dark:text-neutral-300 pt-1">
                   <div>

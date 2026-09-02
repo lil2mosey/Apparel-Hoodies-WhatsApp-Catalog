@@ -1,8 +1,10 @@
 {
   "entities": {
     "Product": {
-      "collection": "products",
-      "fields": {
+      "title": "Product",
+      "description": "Apparel product catalog item",
+      "type": "object",
+      "properties": {
         "id": { "type": "string", "description": "Unique product identifier" },
         "name": { "type": "string", "description": "Name of the apparel item" },
         "price": { "type": "number", "description": "Price in KES" },
@@ -14,11 +16,14 @@
         "colors": { "type": "array", "description": "Available colors" },
         "sizes": { "type": "array", "description": "Available sizes" },
         "updatedAt": { "type": "string", "description": "Timestamp of last update" }
-      }
+      },
+      "required": ["id", "name", "price"]
     },
     "PhotoAsset": {
-      "collection": "photo_assets",
-      "fields": {
+      "title": "PhotoAsset",
+      "description": "Stored photograph or high-resolution garment asset",
+      "type": "object",
+      "properties": {
         "id": { "type": "string", "description": "Unique photo identifier" },
         "name": { "type": "string", "description": "Filename or photo name" },
         "url": { "type": "string", "description": "Photo image URL or data" },
@@ -26,16 +31,34 @@
         "dateAdded": { "type": "string", "description": "Date added" },
         "fileSize": { "type": "string", "description": "File size label" },
         "assignedProductId": { "type": "string", "description": "Target product ID" }
-      }
+      },
+      "required": ["id", "url"]
     },
     "StoreSettings": {
-      "collection": "store_settings",
-      "fields": {
+      "title": "StoreSettings",
+      "description": "Store configuration and WhatsApp contact settings",
+      "type": "object",
+      "properties": {
         "phone": { "type": "string", "description": "WhatsApp phone number" },
         "storeName": { "type": "string", "description": "Store name" },
         "address": { "type": "string", "description": "Physical address" },
         "email": { "type": "string", "description": "Support email" }
-      }
+      },
+      "required": ["phone"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Live apparel product items in the catalog"
+    },
+    "/photo_assets/{photoId}": {
+      "schema": "PhotoAsset",
+      "description": "Product visual assets and uploaded real photos"
+    },
+    "/store_settings/{settingId}": {
+      "schema": "StoreSettings",
+      "description": "Store contact and settings configuration"
     }
   }
 }

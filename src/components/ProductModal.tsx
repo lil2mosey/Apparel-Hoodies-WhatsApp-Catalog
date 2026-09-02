@@ -89,6 +89,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     <img
                       src={photoSrc}
                       alt={product.name}
+                      loading="eager"
+                      decoding="async"
                       className={`w-full h-full transition-all duration-300 ${
                         imageFitMode === 'cover'
                           ? 'object-cover object-center group-hover:scale-105'

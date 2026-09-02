@@ -220,128 +220,39 @@ export function compressAndResizeImage(fileOrDataUrl: File | string, maxDimensio
 }
 
 /**
- * Uploads compressed image to the server API so that it gets a permanent public URL (/uploads/...)
- * This ensures the photo is visible to ANYONE visiting the shared link on any device.
+ * Prepares image for Firestore database persistence.
+ * Returns the optimized web-ready image data URL for direct Firestore document storage.
  */
-export async function uploadImageToServer(imageData: string, filename?: string): Promise<string> {
-  try {
-    const res = await fetch('/api/upload-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageData, filename }),
-    });
-
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && json.url) {
-        return json.url;
-      }
-    }
-  } catch (err) {
-    console.warn('Server upload unavailable, using optimized local data:', err);
-  }
+export async function uploadImageToServer(imageData: string, _filename?: string): Promise<string> {
+  // Returns web-ready compressed image data directly for Firestore database persistence
   return imageData;
 }
 
 /**
- * Persists products to server so shared links and new sessions immediately see the latest catalog
+ * Legacy server persistence stubs retained for compatibility.
+ * All real-time persistence is now managed directly by the Firestore Database.
  */
-export async function syncProductsToServer(products: any[]): Promise<boolean> {
-  try {
-    const res = await fetch('/api/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ products }),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
+export async function syncProductsToServer(_products: any[]): Promise<boolean> {
+  return true;
 }
 
-/**
- * Fetches products from server
- */
 export async function fetchProductsFromServer(): Promise<any[] | null> {
-  try {
-    const res = await fetch('/api/products');
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && Array.isArray(json.products) && json.products.length > 0) {
-        return json.products;
-      }
-    }
-  } catch {
-    // ignore
-  }
   return null;
 }
 
-/**
- * Persists photo assets to server
- */
-export async function syncPhotosToServer(photos: any[]): Promise<boolean> {
-  try {
-    const res = await fetch('/api/photos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ photos }),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
+export async function syncPhotosToServer(_photos: any[]): Promise<boolean> {
+  return true;
 }
 
-/**
- * Fetches photo assets from server
- */
 export async function fetchPhotosFromServer(): Promise<any[] | null> {
-  try {
-    const res = await fetch('/api/photos');
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && Array.isArray(json.photos)) {
-        return json.photos;
-      }
-    }
-  } catch {
-    // ignore
-  }
   return null;
 }
 
-/**
- * Persists store contact info to server
- */
-export async function syncContactToServer(contact: any): Promise<boolean> {
-  try {
-    const res = await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contact }),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
+export async function syncContactToServer(_contact: any): Promise<boolean> {
+  return true;
 }
 
-/**
- * Fetches store contact info from server
- */
 export async function fetchContactFromServer(): Promise<any | null> {
-  try {
-    const res = await fetch('/api/contact');
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && json.contact) {
-        return json.contact;
-      }
-    }
-  } catch {
-    // ignore
-  }
   return null;
 }
 

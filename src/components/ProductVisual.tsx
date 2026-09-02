@@ -68,8 +68,11 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
         <img
           src={customPhotoUrl}
           alt={`${imageType} preview`}
+          loading="eager"
+          decoding="async"
           className="w-full h-full object-contain drop-shadow-md z-10"
           referrerPolicy="no-referrer"
+          onError={() => setCustomPhotoUrl(null)}
         />
       ) : (
         /* Render centralized garment SVG graphic from /src/assets/images/ */

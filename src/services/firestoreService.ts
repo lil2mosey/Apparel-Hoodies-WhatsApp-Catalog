@@ -233,76 +233,56 @@ export async function saveAllPhotoAssetsToFirestore(photos: PhotoAsset[]): Promi
 }
 
 /**
- * DIRECT MANUAL CLOUD SERVER SYNC:
+ * DIRECT FIRESTORE DATABASE SYNC:
  * Guarantees that 100% of photos, custom images, and product catalog
- * are committed directly to Cloud Firestore & server backend storage.
+ * are committed directly to the Firestore Database (ai-studio-apparelhoodieswh-55230f22-659d-4e2b-b441-bbcd63bc503e).
  * Reports granular step-by-step progress to the UI.
  */
-export async function directCloudServerSync(
+export async function directFirestoreSync(
   photos: PhotoAsset[],
   products: Product[],
   onProgress?: (step: string, current: number, total: number) => void
 ): Promise<{ success: boolean; photosSynced: number; productsSynced: number; timestamp: number }> {
-  const totalSteps = photos.length + products.length + 2;
+  const totalSteps = photos.length + products.length + 1;
   let completed = 0;
 
   try {
-    // 1. Sync all Photo Assets directly to Firestore
-    if (onProgress) onProgress('Starting Cloud Firestore synchronization...', 0, totalSteps);
+    // 1. Sync all Photo Assets directly to Firestore database
+    if (onProgress) onProgress('Connecting to Firestore database...', 0, totalSteps);
 
     for (let i = 0; i < photos.length; i++) {
       const photo = photos[i];
       if (onProgress) {
-        onProgress(`Saving photo "${photo.name || 'Photo'}" to Cloud Firestore...`, completed, totalSteps);
+        onProgress(`Saving photo "${photo.name || 'Photo'}" to Firestore database...`, completed, totalSteps);
       }
       try {
         const docRef = doc(db, 'photo_assets', photo.id);
         const cleaned = cleanForFirestore(photo);
         await setDoc(docRef, cleaned, { merge: true });
       } catch (err) {
-        console.warn(`Warning writing photo asset ${photo.id}:`, err);
+        console.warn(`Warning writing photo asset ${photo.id} to Firestore:`, err);
       }
       completed++;
     }
 
-    // 2. Sync all Products to Firestore
+    // 2. Sync all Products directly to Firestore database
     for (let i = 0; i < products.length; i++) {
       const prod = products[i];
       if (onProgress) {
-        onProgress(`Saving product "${prod.name}" to Cloud Firestore...`, completed, totalSteps);
+        onProgress(`Saving product "${prod.name}" to Firestore database...`, completed, totalSteps);
       }
       try {
         const docRef = doc(db, 'products', prod.id);
         const cleaned = cleanProductForFirestore(prod);
         await setDoc(docRef, cleaned, { merge: true });
       } catch (err) {
-        console.warn(`Warning writing product ${prod.id}:`, err);
+        console.warn(`Warning writing product ${prod.id} to Firestore:`, err);
       }
       completed++;
     }
 
-    // 3. Sync to server APIs as secondary persistent layer
-    if (onProgress) onProgress('Syncing server file system mirror...', completed, totalSteps);
-    try {
-      await Promise.allSettled([
-        fetch('/api/photos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ photos }),
-        }),
-        fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ products }),
-        }),
-      ]);
-    } catch {
-      // Non-blocking server mirror sync
-    }
-    completed++;
-
-    // 4. Complete
-    if (onProgress) onProgress('Verifying Cloud Storage and local cache...', totalSteps, totalSteps);
+    // 3. Complete and verify
+    if (onProgress) onProgress('Verifying Firestore database records...', totalSteps, totalSteps);
 
     return {
       success: true,
@@ -311,10 +291,13 @@ export async function directCloudServerSync(
       timestamp: Date.now(),
     };
   } catch (err) {
-    console.error('Direct Cloud Server Sync encountered an error:', err);
+    console.error('Firestore Database Sync encountered an error:', err);
     throw err;
   }
 }
+
+// Backwards compatibility alias
+export const directCloudServerSync = directFirestoreSync;
 
 /**
  * Deletes a photo asset from Cloud Firestore

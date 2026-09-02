@@ -20,6 +20,11 @@ service cloud.firestore {
       allow write: if true;
     }
 
+    // Test connection check
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
     // Catch-all
     match /{document=**} {
       allow read: if true;

@@ -21,7 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [selectedSize, setSelectedSize] = useState<ApparelSize>(product.sizes[0] || 'L');
   const [quantity, setQuantity] = useState<number>(1);
   const [imageError, setImageError] = useState(false);
-  const [isImgLoading, setIsImgLoading] = useState(true);
+  const imgRef = React.useRef<HTMLImageElement | null>(null);
 
   const handleSendToWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -33,7 +33,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   useEffect(() => {
     setImageError(false);
-    setIsImgLoading(true);
+    if (imgRef.current && imgRef.current.complete) {
+      if (imgRef.current.naturalWidth === 0) {
+        setImageError(true);
+      }
+    }
   }, [photoSrc]);
 
   return (
@@ -74,22 +78,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Visual: Uploaded Real Photo OR Dynamic Mockup */}
         {hasUploadedPhoto && photoSrc ? (
           <div className="relative flex items-center justify-center overflow-hidden rounded-2xl bg-neutral-100 dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] aspect-[4/3] group-hover:scale-[1.02] transition-transform duration-300">
-            {isImgLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 dark:bg-[#18202c] animate-pulse z-1">
-                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Loading Photo...</span>
-              </div>
-            )}
             <img
+              ref={imgRef}
               src={photoSrc}
               alt={product.name}
               decoding="async"
-              loading="lazy"
-              className={`w-full h-full object-cover object-center transition-opacity duration-200 ${isImgLoading ? 'opacity-0' : 'opacity-100'}`}
+              loading="eager"
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
               referrerPolicy="no-referrer"
-              onLoad={() => setIsImgLoading(false)}
+              onLoad={(e) => {
+                const target = e.currentTarget as HTMLImageElement;
+                if (target.naturalWidth === 0) {
+                  setImageError(true);
+                }
+              }}
               onError={() => {
                 setImageError(true);
-                setIsImgLoading(false);
               }}
             />
             <div className="absolute bottom-2 left-2 bg-neutral-900/80 backdrop-blur-xs text-white text-[9px] font-black px-2 py-0.5 rounded-md z-2">

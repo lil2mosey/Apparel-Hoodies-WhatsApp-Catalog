@@ -122,7 +122,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     category: 'hoodies',
     subtitle: 'High-density premium cotton fabric',
     description: 'High quality apparel crafted for comfort, durability, and custom branding.',
-    price: 1500,
+    price: 2000,
     currency: 'KSh',
     image: 'hoodie-pullover',
     featured: false,

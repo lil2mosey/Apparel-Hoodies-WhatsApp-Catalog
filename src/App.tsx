@@ -190,12 +190,17 @@ export default function App() {
 
   // Products state (persisted to localStorage)
   const [products, setProducts] = useState<Product[]>(() => {
+    const CURRENT_VERSION = 'v2_prices_half_hoodie';
     try {
+      const version = localStorage.getItem('muso_catalog_version');
       const saved = localStorage.getItem('muso_products_catalog');
-      if (saved) {
+      if (saved && version === CURRENT_VERSION) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
+      // Set updated base catalog and current version
+      localStorage.setItem('muso_catalog_version', CURRENT_VERSION);
+      localStorage.setItem('muso_products_catalog', JSON.stringify(PRODUCTS));
     } catch {
       // ignore
     }
@@ -206,6 +211,7 @@ export default function App() {
     setProducts(newProducts);
     try {
       localStorage.setItem('muso_products_catalog', JSON.stringify(newProducts));
+      localStorage.setItem('muso_catalog_version', 'v2_prices_half_hoodie');
     } catch {
       // ignore
     }

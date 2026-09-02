@@ -25,6 +25,16 @@ export interface ImageAssetMeta {
 // Global registry of all image assets managed in this folder
 export const ALL_IMAGE_ASSETS: ImageAssetMeta[] = [
   {
+    id: 'img-hoodie-half',
+    key: 'hoodie-half',
+    name: 'Half Hoodie (Sleeveless Fleece Hoodie)',
+    category: 'hoodies',
+    fileName: 'half-hoodie.svg',
+    format: 'svg-vector',
+    description: 'Sleeveless drop-armhole pullover fleece hoodie with kangaroo pocket and drawstrings',
+    dimensions: '400x400 (Vector Scalable)',
+  },
+  {
     id: 'img-hoodie-pullover',
     key: 'hoodie-pullover',
     name: 'Pullover Heavyweight Fleece Hoodie',
@@ -170,6 +180,105 @@ export function renderGarmentGraphic(
   );
   const textColor = isWhiteOrLight ? '#1e293b' : '#ffffff';
   const stitchColor = isWhiteOrLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)';
+
+  // 0. HALF HOODIE / SLEEVELESS HOODIE
+  if (imageKey.includes('hoodie-half') || imageKey.includes('half-hoodie') || imageKey.includes('sleeveless-hoodie')) {
+    return (
+      <svg
+        viewBox="0 0 400 400"
+        className="w-full h-full max-h-full drop-shadow-md transition-transform duration-300"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Sleeveless Body Contour */}
+        <path
+          d="M135 110 L108 140 L132 180 L142 165 L142 330 L258 330 L258 165 L268 180 L292 140 L265 110 Z"
+          fill={hex}
+          stroke="#000000"
+          strokeWidth="2"
+          strokeOpacity="0.15"
+        />
+
+        {/* Rolled / Ribbed Sleeveless Armhole Trim Left */}
+        <path
+          d="M108 140 C118 154, 126 168, 132 180 C136 175, 140 170, 142 165 C136 154, 128 144, 118 134 Z"
+          fill={hex}
+          filter="brightness(0.88)"
+          stroke={stitchColor}
+          strokeWidth="1.5"
+        />
+        {/* Rolled / Ribbed Sleeveless Armhole Trim Right */}
+        <path
+          d="M292 140 C282 154, 274 168, 268 180 C264 175, 260 170, 258 165 C264 154, 272 144, 282 134 Z"
+          fill={hex}
+          filter="brightness(0.88)"
+          stroke={stitchColor}
+          strokeWidth="1.5"
+        />
+
+        {/* Kangaroo Front Pocket */}
+        <path
+          d="M160 245 L240 245 L255 295 L145 295 Z"
+          fill={hex}
+          filter="brightness(0.93)"
+          stroke={stitchColor}
+          strokeWidth="2"
+        />
+        <path d="M160 245 L145 295" stroke={stitchColor} strokeWidth="2.5" strokeDasharray="3 3" />
+        <path d="M240 245 L255 295" stroke={stitchColor} strokeWidth="2.5" strokeDasharray="3 3" />
+
+        {/* Bottom Ribbed Hem */}
+        <rect x="142" y="315" width="116" height="15" fill={hex} filter="brightness(0.85)" rx="2" />
+
+        {/* Double-Lined Hood */}
+        <path
+          d="M150 110 C150 48, 250 48, 250 110 C250 125, 230 145, 200 145 C170 145, 150 125, 150 110 Z"
+          fill={hex}
+          filter="brightness(0.9)"
+          stroke="#000000"
+          strokeWidth="1.5"
+          strokeOpacity="0.2"
+        />
+        <path
+          d="M165 105 C175 75, 225 75, 235 105 C220 125, 180 125, 165 105 Z"
+          fill="#111827"
+          fillOpacity="0.38"
+        />
+
+        {/* White Hood Drawstrings with Dark Metal/Rubber Tips */}
+        <path d="M185 130 Q180 175 180 200" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
+        <rect x="178.5" y="196" width="3" height="8" rx="1" fill="#1e293b" />
+        <path d="M215 130 Q220 175 220 200" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
+        <rect x="218.5" y="196" width="3" height="8" rx="1" fill="#1e293b" />
+
+        {/* Custom Text / Branding */}
+        {customText && customText.trim() && (
+          <g>
+            <rect
+              x="155"
+              y="165"
+              width="90"
+              height="26"
+              rx="4"
+              fill={isWhiteOrLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.12)'}
+            />
+            <text
+              x="200"
+              y="182"
+              fill={textColor}
+              fontSize="12"
+              fontWeight="800"
+              letterSpacing="1.5"
+              textAnchor="middle"
+              className="uppercase font-mono"
+            >
+              {customText.length > 12 ? customText.substring(0, 10) + '...' : customText}
+            </text>
+          </g>
+        )}
+      </svg>
+    );
+  }
 
   // 1. PULLOVER HOODIE
   if (imageKey.includes('hoodie-pullover')) {

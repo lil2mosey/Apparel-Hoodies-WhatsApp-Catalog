@@ -115,13 +115,33 @@ export const ALL_IMAGE_ASSETS: ImageAssetMeta[] = [
     dimensions: '400x400 (Vector Scalable)',
   },
   {
+    id: 'img-poncho-fleece',
+    key: 'poncho-fleece',
+    name: 'Fringed Warm Fleece & Maasai Poncho',
+    category: 'ponchos',
+    fileName: 'fleece-poncho.svg',
+    format: 'svg-vector',
+    description: 'Signature warm draped fleece poncho with handcrafted fringe tassels and open neckline',
+    dimensions: '400x400 (Vector Scalable)',
+  },
+  {
+    id: 'img-tracksuit-set',
+    key: 'tracksuit-set',
+    name: '2-Piece Athletic Fleece Tracksuit (Jacket & Joggers)',
+    category: 'tracksuits',
+    fileName: 'athletic-tracksuit.svg',
+    format: 'svg-vector',
+    description: 'Matching full-zip fleece track jacket and cuffed jogger pants 2-piece set',
+    dimensions: '400x400 (Vector Scalable)',
+  },
+  {
     id: 'img-brand-logo',
     key: 'muso-logo',
-    name: "Muso's Brand Monogram Logo",
+    name: "Gryson's Brand Monogram Logo",
     category: 'branding',
-    fileName: 'muso-brand-logo.svg',
+    fileName: 'grysons-brand-logo.svg',
     format: 'svg-vector',
-    description: 'Official emblem for Muso Apparel with Emerald green gradient and gold star',
+    description: 'Official emblem for Gryson Apparel with Emerald green 3D G monogram and red accents',
     dimensions: '100x100 (Vector Scalable)',
   },
 ];
@@ -802,6 +822,205 @@ export function renderGarmentGraphic(
             {customText.length > 7 ? customText.substring(0, 6) + '..' : customText}
           </text>
         )}
+      </svg>
+    );
+  }
+
+  // 9. FRINGED WARM FLEECE PONCHO
+  if (imageKey.includes('poncho')) {
+    return (
+      <svg
+        viewBox="0 0 400 400"
+        className="w-full h-full max-h-full drop-shadow-md transition-transform duration-300"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Triangular Draped Poncho Main Body */}
+        <path
+          d="M200 90 L340 270 L200 340 L60 270 Z"
+          fill={hex}
+          stroke="#000000"
+          strokeWidth="2.5"
+          strokeOpacity="0.2"
+        />
+
+        {/* Diagonal Soft Draping Fabric Folds */}
+        <path d="M200 135 L120 275" stroke={stitchColor} strokeWidth="2" strokeDasharray="4 4" />
+        <path d="M200 135 L280 275" stroke={stitchColor} strokeWidth="2" strokeDasharray="4 4" />
+        <path d="M200 160 L200 330" stroke="#000000" strokeWidth="2" strokeOpacity="0.15" />
+
+        {/* Decorative Maasai / Geometric Border Band Accent */}
+        <path
+          d="M75 260 L200 325 L325 260 L335 272 L200 338 L65 272 Z"
+          fill={isWhiteOrLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.2)'}
+        />
+
+        {/* Fringe Tassels along bottom V-shaped border */}
+        {/* Left V-edge tassels */}
+        {[
+          { x1: 70, y1: 275, x2: 64, y2: 295 },
+          { x1: 90, y1: 285, x2: 84, y2: 305 },
+          { x1: 110, y1: 295, x2: 104, y2: 315 },
+          { x1: 130, y1: 305, x2: 124, y2: 325 },
+          { x1: 150, y1: 315, x2: 144, y2: 335 },
+          { x1: 170, y1: 325, x2: 164, y2: 345 },
+          { x1: 190, y1: 335, x2: 184, y2: 355 },
+          { x1: 200, y1: 340, x2: 200, y2: 362 },
+          { x1: 210, y1: 335, x2: 216, y2: 355 },
+          { x1: 230, y1: 325, x2: 236, y2: 345 },
+          { x1: 250, y1: 315, x2: 256, y2: 335 },
+          { x1: 270, y1: 305, x2: 276, y2: 325 },
+          { x1: 290, y1: 295, x2: 296, y2: 315 },
+          { x1: 310, y1: 285, x2: 316, y2: 305 },
+          { x1: 330, y1: 275, x2: 336, y2: 295 },
+        ].map((fringe, i) => (
+          <line
+            key={i}
+            x1={fringe.x1}
+            y1={fringe.y1}
+            x2={fringe.x2}
+            y2={fringe.y2}
+            stroke={isWhiteOrLight ? '#475569' : '#f8fafc'}
+            strokeWidth="3.5"
+            strokeLinecap="round"
+          />
+        ))}
+
+        {/* Neckline Opening (V-Neck / Collar) */}
+        <path
+          d="M175 90 C175 130, 225 130, 225 90 Z"
+          fill="#111827"
+          fillOpacity="0.3"
+          stroke={stitchColor}
+          strokeWidth="2"
+        />
+        <path
+          d="M165 85 Q200 120 235 85"
+          stroke={stitchColor}
+          strokeWidth="3"
+          fill="none"
+        />
+
+        {/* Custom Text / Monogram Embroidered on Chest */}
+        {customText && customText.trim() && (
+          <g>
+            <rect
+              x="160"
+              y="160"
+              width="80"
+              height="24"
+              rx="4"
+              fill={isWhiteOrLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.18)'}
+            />
+            <text
+              x="200"
+              y="176"
+              fill={textColor}
+              fontSize="10"
+              fontWeight="800"
+              letterSpacing="1.5"
+              textAnchor="middle"
+              className="uppercase font-mono"
+            >
+              {customText.length > 10 ? customText.substring(0, 8) + '..' : customText}
+            </text>
+          </g>
+        )}
+      </svg>
+    );
+  }
+
+  // 10. 2-PIECE ATHLETIC FLEECE TRACKSUIT (JACKET + JOGGERS)
+  if (imageKey.includes('tracksuit')) {
+    return (
+      <svg
+        viewBox="0 0 400 400"
+        className="w-full h-full max-h-full drop-shadow-md transition-transform duration-300"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* --- PART 1: FULL-ZIP TRACK JACKET (TOP HALF) --- */}
+        {/* Jacket Body & Sleeves */}
+        <path
+          d="M135 60 L85 105 L105 175 L135 160 L135 210 L265 210 L265 160 L295 175 L315 105 L265 60 Z"
+          fill={hex}
+          stroke="#000000"
+          strokeWidth="2"
+          strokeOpacity="0.2"
+        />
+
+        {/* White / Contrast Shoulder Athletic Stripes */}
+        <path d="M135 60 L85 105 L95 115 L142 70 Z" fill="#ffffff" fillOpacity="0.85" />
+        <path d="M265 60 L315 105 L305 115 L258 70 Z" fill="#ffffff" fillOpacity="0.85" />
+
+        {/* High Stand Collar */}
+        <path
+          d="M165 48 L165 65 L235 65 L235 48 Z"
+          fill={hex}
+          filter="brightness(0.85)"
+          stroke="#000000"
+          strokeWidth="1.5"
+          strokeOpacity="0.3"
+        />
+
+        {/* Front Full Metal Zipper */}
+        <line x1="200" y1="48" x2="200" y2="210" stroke="#f1f5f9" strokeWidth="3" />
+        <rect x="197" y="65" width="6" height="12" rx="1.5" fill="#1e293b" />
+
+        {/* Zipper Side Pockets */}
+        <line x1="155" y1="160" x2="155" y2="188" stroke="#000000" strokeWidth="2.5" strokeOpacity="0.35" strokeLinecap="round" />
+        <line x1="245" y1="160" x2="245" y2="188" stroke="#000000" strokeWidth="2.5" strokeOpacity="0.35" strokeLinecap="round" />
+
+        {/* Jacket Ribbed Hem */}
+        <rect x="135" y="200" width="130" height="10" rx="1" fill={hex} filter="brightness(0.8)" />
+
+        {/* Sleeve Cuffs */}
+        <rect x="99" y="162" width="16" height="12" rx="2" transform="rotate(25 99 162)" fill={hex} filter="brightness(0.8)" />
+        <rect x="285" y="168" width="16" height="12" rx="2" transform="rotate(-25 285 168)" fill={hex} filter="brightness(0.8)" />
+
+        {/* Custom Text / Chest Crest Print */}
+        {customText && customText.trim() && (
+          <text
+            x="165"
+            y="115"
+            fill={textColor}
+            fontSize="9"
+            fontWeight="800"
+            letterSpacing="1"
+            textAnchor="middle"
+            className="uppercase font-mono"
+          >
+            {customText.length > 7 ? customText.substring(0, 6) + '..' : customText}
+          </text>
+        )}
+
+        {/* --- PART 2: MATCHING TAPERED JOGGERS (BOTTOM HALF) --- */}
+        {/* Drawcord Elastic Waistband */}
+        <rect x="145" y="222" width="110" height="12" rx="2" fill={hex} filter="brightness(0.85)" stroke="#000000" strokeWidth="1" strokeOpacity="0.2" />
+        {/* White Drawstrings Hanging */}
+        <path d="M194 232 Q190 252 192 260" stroke="#f8fafc" strokeWidth="2" strokeLinecap="round" />
+        <path d="M206 232 Q210 252 208 260" stroke="#f8fafc" strokeWidth="2" strokeLinecap="round" />
+
+        {/* Jogger Legs */}
+        <path
+          d="M145 234 L152 355 L178 355 L200 270 L222 355 L248 355 L255 234 Z"
+          fill={hex}
+          stroke="#000000"
+          strokeWidth="2"
+          strokeOpacity="0.2"
+        />
+
+        {/* Outer White Leg Stripe Accents */}
+        <line x1="148" y1="234" x2="154" y2="355" stroke="#ffffff" strokeWidth="2.5" strokeOpacity="0.8" />
+        <line x1="252" y1="234" x2="246" y2="355" stroke="#ffffff" strokeWidth="2.5" strokeOpacity="0.8" />
+
+        {/* Inseam & Pocket Slits */}
+        <line x1="156" y1="245" x2="170" y2="265" stroke="#000000" strokeWidth="2" strokeOpacity="0.3" strokeLinecap="round" />
+        <line x1="244" y1="245" x2="230" y2="265" stroke="#000000" strokeWidth="2" strokeOpacity="0.3" strokeLinecap="round" />
+
+        {/* Ribbed Ankle Cuffs */}
+        <rect x="152" y="355" width="26" height="10" rx="2" fill={hex} filter="brightness(0.78)" />
+        <rect x="222" y="355" width="26" height="10" rx="2" fill={hex} filter="brightness(0.78)" />
       </svg>
     );
   }

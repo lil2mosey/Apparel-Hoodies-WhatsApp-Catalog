@@ -1,188 +1,214 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-interface MusoBrandLogoProps {
-  variant?: 'full' | 'emblem' | 'icon';
+const officialLogoImg = '/grysons-logo.jpg';
+
+interface GrysonBrandLogoProps {
+  variant?: 'full' | 'emblem' | 'icon' | 'card';
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'custom';
   className?: string;
   phone?: string;
+  usePhoto?: boolean;
 }
 
-export const MusoBrandLogo: React.FC<MusoBrandLogoProps> = ({
+export const GrysonBrandLogo: React.FC<GrysonBrandLogoProps> = ({
   variant = 'full',
   size = 'md',
   className = '',
   phone = '0735418753',
+  usePhoto = true,
 }) => {
+  const [imgError, setImgError] = useState(false);
+
   // Dimension mapping
   const sizeStyles = {
-    sm: variant === 'full' ? 'w-28' : 'w-9 h-9',
-    md: variant === 'full' ? 'w-44' : 'w-12 h-12',
-    lg: variant === 'full' ? 'w-64' : 'w-20 h-20',
-    xl: variant === 'full' ? 'w-80' : 'w-28 h-28',
+    sm: variant === 'full' || variant === 'card' ? 'w-32' : 'w-9 h-9',
+    md: variant === 'full' || variant === 'card' ? 'w-48 sm:w-56' : 'w-11 h-11 sm:w-12 sm:h-12',
+    lg: variant === 'full' || variant === 'card' ? 'w-64 sm:w-72' : 'w-16 h-16 sm:w-20 sm:h-20',
+    xl: variant === 'full' || variant === 'card' ? 'w-80 sm:w-96' : 'w-24 h-24 sm:w-28 sm:h-28',
     custom: '',
   };
 
   const selectedSizeClass = sizeStyles[size];
 
-  // SVG Emblem recreation of the uploaded logo
+  // SVG Emblem recreation of Gryson's uploaded brand logo
   const EmblemSVG = ({ className = 'w-full h-full' }: { className?: string }) => (
     <svg
-      viewBox="0 0 360 360"
+      viewBox="0 0 400 400"
       className={className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Muso's Apparel Logo"
+      aria-label="Gryson's Apparel & Custom Merch Official Logo"
     >
       <defs>
-        {/* Arc path for circular top text */}
+        {/* Arc path for circular text around the emblem */}
         <path
-          id="musoTopArcPath"
-          d="M 52 180 A 128 128 0 0 1 308 180"
+          id="grysonTopArcPath"
+          d="M 45 200 A 155 155 0 1 1 355 200 A 155 155 0 0 1 45 200"
           fill="none"
         />
 
-        {/* Green fabric gradients for the 3D folded 'M' */}
-        <linearGradient id="musoGreenMain" x1="0%" y1="0%" x2="100%" y2="100%">
+        {/* Green 3D gradients for the faceted 'G' monogram */}
+        <linearGradient id="grysonEmeraldMain" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#10b981" />
-          <stop offset="100%" stopColor="#059669" />
+          <stop offset="50%" stopColor="#059669" />
+          <stop offset="100%" stopColor="#047857" />
         </linearGradient>
 
-        <linearGradient id="musoGreenDark" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#047857" />
-          <stop offset="100%" stopColor="#065f46" />
-        </linearGradient>
-
-        <linearGradient id="musoGreenLight" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#34d399" />
+        <linearGradient id="grysonEmeraldLight" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#6ee7b7" />
           <stop offset="100%" stopColor="#10b981" />
         </linearGradient>
 
-        {/* Soft shadow filter */}
-        <filter id="logoShadow" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.25" />
+        <linearGradient id="grysonEmeraldDark" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#047857" />
+          <stop offset="100%" stopColor="#064e3b" />
+        </linearGradient>
+
+        <linearGradient id="grysonRedAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ef4444" />
+          <stop offset="100%" stopColor="#b91c1c" />
+        </linearGradient>
+
+        {/* Drop shadow filter for 3D elements */}
+        <filter id="grysonShadow" x="-10%" y="-10%" width="125%" height="125%">
+          <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.25" />
+        </filter>
+        <filter id="monogramGlow" x="-15%" y="-15%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.3" />
         </filter>
       </defs>
 
-      {/* Main Dark Charcoal / Slate Circular Emblem */}
-      <circle cx="180" cy="180" r="160" fill="#232a35" />
+      {/* Outer Slate / Dark Charcoal Ring Frame */}
+      <circle cx="200" cy="200" r="190" fill="#242c38" />
 
-      {/* Outer Concentric Red Rings */}
-      <circle cx="180" cy="180" r="150" stroke="#d9383a" strokeWidth="4" strokeOpacity="0.9" />
-      <circle cx="180" cy="180" r="136" stroke="#d9383a" strokeWidth="3" />
-      <circle cx="180" cy="180" r="130" stroke="#b91c1c" strokeWidth="1.5" strokeOpacity="0.6" />
+      {/* Red Outer Accent Trim Arcs */}
+      <path
+        d="M 50 250 A 175 175 0 0 0 140 365"
+        stroke="url(#grysonRedAccent)"
+        strokeWidth="6"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M 260 365 A 175 175 0 0 0 350 250"
+        stroke="url(#grysonRedAccent)"
+        strokeWidth="6"
+        strokeLinecap="round"
+        fill="none"
+      />
 
-      {/* Top Arc Curved Text */}
+      {/* Inner White Display Stage for the G and Garments */}
+      <circle cx="200" cy="200" r="142" fill="#FFFFFF" stroke="#242c38" strokeWidth="2" filter="url(#grysonShadow)" />
+      
+      {/* Subtle Inner Accent Ring */}
+      <circle cx="200" cy="200" r="136" stroke="#f1f5f9" strokeWidth="2" fill="none" />
+
+      {/* Circular Border Banner Text with all 7 item categories */}
       <text
         fill="#FFFFFF"
-        fontSize="11"
+        fontSize="11.5"
         fontWeight="800"
-        letterSpacing="1.4"
+        letterSpacing="1.2"
         className="uppercase select-none"
         style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
-        <textPath href="#musoTopArcPath" startOffset="50%" textAnchor="middle">
-          Hoodies, Polo Shirts, Sweatshirts, Caps, Plain Tees.
+        <textPath href="#grysonTopArcPath" startOffset="50%" textAnchor="middle">
+          Hoodies, Polo Shirts, Sweatshirts, Ponchos, Tracksuits, Caps, Plain Tees.
         </textPath>
       </text>
 
-      {/* 5 Apparel Icons arranged symmetrically in arc */}
-      <g fill="#FFFFFF" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round">
-        {/* 1. Pullover Hoodie Icon (Upper Left) */}
-        <g transform="translate(130, 80) scale(0.65)">
-          {/* Hood */}
-          <path d="M12 28 C12 12, 36 12, 36 28 Z" fill="#ffffff" />
-          {/* Body & Sleeves */}
-          <path d="M6 28 L14 46 L20 46 L18 36 L30 36 L28 46 L34 46 L42 28 Z" fill="#ffffff" />
-          {/* Kangaroo Pocket */}
-          <path d="M18 36 L30 36 L28 44 L20 44 Z" fill="#232a35" />
+      {/* =========================================================================
+          7 APPAREL ICONS (Arranged symmetrically in the white circle around the G)
+          ========================================================================= */}
+      <g fill="#242c38" stroke="#242c38" strokeLinecap="round" strokeLinejoin="round">
+        
+        {/* 1. PONCHO ICON (Top Left - Fringed Draped Poncho) */}
+        <g transform="translate(100, 80) scale(0.68)">
+          <path d="M 25 10 L 48 35 L 2 35 Z" fill="#242c38" />
+          <path d="M 20 10 L 25 18 L 30 10" stroke="#ffffff" strokeWidth="2" fill="none" />
+          <line x1="4" y1="35" x2="4" y2="40" stroke="#242c38" strokeWidth="1.8" />
+          <line x1="10" y1="35" x2="10" y2="40" stroke="#242c38" strokeWidth="1.8" />
+          <line x1="16" y1="35" x2="16" y2="40" stroke="#242c38" strokeWidth="1.8" />
+          <line x1="22" y1="35" x2="22" y2="40" stroke="#242c38" strokeWidth="1.8" />
+          <line x1="28" y1="35" x2="28" y2="40" stroke="#242c38" strokeWidth="1.8" />
+          <line x1="34" y1="35" x2="34" y2="40" stroke="#242c38" strokeWidth="1.8" />
+          <line x1="40" y1="35" x2="40" y2="40" stroke="#242c38" strokeWidth="1.8" />
+          <line x1="46" y1="35" x2="46" y2="40" stroke="#242c38" strokeWidth="1.8" />
         </g>
 
-        {/* 2. Polo Shirt Icon (Top Center) */}
-        <g transform="translate(164, 73) scale(0.68)">
-          <path d="M8 22 L18 20 L24 26 L30 20 L40 22 L36 30 L32 29 L32 46 L16 46 L16 29 L12 30 Z" fill="#ffffff" />
-          {/* Collar flaps */}
-          <path d="M18 20 L24 28 L21 21 Z" fill="#232a35" />
-          <path d="M30 20 L24 28 L27 21 Z" fill="#232a35" />
-          <line x1="24" y1="28" x2="24" y2="35" stroke="#232a35" strokeWidth="1.5" />
+        {/* 2. TRACKSUIT SET ICON (Top Right - Zip Jacket + Joggers) */}
+        <g transform="translate(260, 80) scale(0.68)">
+          <path d="M 8 16 L 16 12 L 24 12 L 32 16 L 38 24 L 34 26 L 30 22 L 30 36 L 10 36 L 10 22 L 6 26 L 2 24 Z" fill="#242c38" />
+          <line x1="20" y1="12" x2="20" y2="36" stroke="#ffffff" strokeWidth="1.5" />
+          <line x1="10" y1="18" x2="6" y2="24" stroke="#ffffff" strokeWidth="1.2" />
+          <line x1="30" y1="18" x2="34" y2="24" stroke="#ffffff" strokeWidth="1.2" />
+          <path d="M 12 39 L 28 39 L 26 54 L 22 54 L 20 44 L 18 54 L 14 54 Z" fill="#242c38" />
+          <line x1="13" y1="40" x2="15" y2="53" stroke="#ffffff" strokeWidth="1" />
+          <line x1="27" y1="40" x2="25" y2="53" stroke="#ffffff" strokeWidth="1" />
         </g>
 
-        {/* 3. Baseball Cap Icon (Upper Right) */}
-        <g transform="translate(198, 83) scale(0.65)">
-          {/* Cap Crown */}
-          <path d="M10 32 C10 18, 34 18, 38 32 Z" fill="#ffffff" />
-          {/* Curved Visor / Brim */}
-          <path d="M8 32 C16 35, 36 34, 44 31 C40 37, 24 38, 8 32 Z" fill="#ffffff" />
-          {/* Top button */}
-          <circle cx="24" cy="18" r="2" fill="#ffffff" />
+        {/* 3. HOODIE ICON (Middle Left) */}
+        <g transform="translate(76, 175) scale(0.65)">
+          <path d="M 12 24 C 12 10, 36 10, 36 24 Z" fill="#242c38" />
+          <path d="M 6 24 L 14 42 L 20 42 L 18 32 L 30 32 L 28 42 L 34 42 L 42 24 Z" fill="#242c38" />
+          <path d="M 18 32 L 30 32 L 28 40 L 20 40 Z" fill="#ffffff" />
         </g>
 
-        {/* 4. Crewneck Sweatshirt Icon (Middle Left) */}
-        <g transform="translate(108, 122) scale(0.62)">
-          <path d="M8 20 L16 16 C20 20, 28 20, 32 16 L40 20 L35 34 L30 32 L30 46 L18 46 L18 32 L13 34 Z" fill="#ffffff" />
+        {/* 4. PLAIN CREWNECK T-SHIRT ICON (Middle Right) */}
+        <g transform="translate(285, 175) scale(0.65)">
+          <path d="M 10 18 L 16 14 C 20 18, 28 18, 32 14 L 38 18 L 34 28 L 30 27 L 30 44 L 18 44 L 18 27 L 14 28 Z" fill="#242c38" />
         </g>
 
-        {/* 5. Plain Crewneck T-Shirt Icon (Middle Right) */}
-        <g transform="translate(228, 122) scale(0.62)">
-          <path d="M10 20 L16 16 C20 19, 28 19, 32 16 L38 20 L34 30 L30 29 L30 46 L18 46 L18 29 L14 30 Z" fill="#ffffff" />
+        {/* 5. POLO SHIRT ICON (Bottom Left) */}
+        <g transform="translate(100, 260) scale(0.65)">
+          <path d="M 8 20 L 18 18 L 24 24 L 30 18 L 40 20 L 36 28 L 32 27 L 32 44 L 16 44 L 16 27 L 12 28 Z" fill="#242c38" />
+          <path d="M 18 18 L 24 26 L 21 19 Z" fill="#ffffff" />
+          <path d="M 30 18 L 24 26 L 27 19 Z" fill="#ffffff" />
+        </g>
+
+        {/* 6. SWEATSHIRT ICON (Bottom Center) */}
+        <g transform="translate(182, 275) scale(0.65)">
+          <path d="M 8 18 L 16 14 C 20 18, 28 18, 32 14 L 40 18 L 35 32 L 30 30 L 30 44 L 18 44 L 18 30 L 13 32 Z" fill="#242c38" />
+          <path d="M 19 15 C 22 18, 26 18, 29 15" stroke="#ffffff" strokeWidth="1.5" fill="none" />
+        </g>
+
+        {/* 7. BASEBALL CAP ICON (Bottom Right) */}
+        <g transform="translate(262, 260) scale(0.65)">
+          <path d="M 10 30 C 10 16, 34 16, 38 30 Z" fill="#242c38" />
+          <path d="M 8 30 C 16 33, 36 32, 44 29 C 40 35, 24 36, 8 30 Z" fill="#242c38" />
+          <circle cx="24" cy="16" r="2.2" fill="#ffffff" />
         </g>
       </g>
 
-      {/* Central Large 3D Folded Emerald Green "M" Graphic with Sweater Sleeve */}
-      <g filter="url(#logoShadow)">
-        {/* Left Vertical Pillar of 'M' */}
+      {/* =========================================================================
+          CENTRAL 3D FACETED EMERALD GREEN 'G' MONOGRAM
+          ========================================================================= */}
+      <g filter="url(#monogramGlow)" transform="translate(200, 195)">
         <path
-          d="M 136 116 L 165 116 L 165 204 L 136 190 Z"
-          fill="url(#musoGreenMain)"
+          d="M 18 -58 C 4 -58, -12 -54, -26 -44 C -44 -30, -55 -8, -55 16 C -55 42, -42 64, -20 74 C -4 82, 16 82, 32 74 C 44 68, 52 56, 52 40 L 52 10 L 0 10 L 0 28 L 30 28 L 30 38 C 30 46, 22 56, 12 60 C -2 64, -18 64, -28 52 C -38 40, -40 24, -40 12 C -40 -8, -32 -26, -18 -36 C -8 -44, 4 -46, 16 -46 C 26 -46, 36 -42, 44 -34 L 54 -46 C 44 -54, 32 -58, 18 -58 Z"
+          fill="url(#grysonEmeraldMain)"
         />
-        {/* Left Bottom Base extension */}
         <path
-          d="M 136 190 L 165 204 L 165 242 L 136 242 Z"
-          fill="url(#musoGreenLight)"
+          d="M 18 -58 C 4 -58, -12 -54, -26 -44 C -44 -30, -55 -8, -55 16 C -55 24, -50 20, -45 10 C -45 -12, -34 -30, -18 -38 C -6 -44, 6 -46, 16 -46 C 28 -46, 38 -40, 46 -32 L 54 -46 C 44 -54, 32 -58, 18 -58 Z"
+          fill="url(#grysonEmeraldLight)"
         />
-
-        {/* Central Left Diagonal Slope of 'M' */}
         <path
-          d="M 165 116 L 202 216 L 180 236 L 148 150 Z"
-          fill="url(#musoGreenDark)"
+          d="M 52 10 L 0 10 L 0 28 L 30 28 L 52 28 Z"
+          fill="url(#grysonEmeraldDark)"
         />
-
-        {/* Central Right Diagonal Slope of 'M' */}
         <path
-          d="M 180 236 L 210 116 L 236 116 L 196 230 Z"
-          fill="url(#musoGreenMain)"
+          d="M 0 10 L 30 28 L 0 28 Z"
+          fill="url(#grysonEmeraldMain)"
         />
-
-        {/* Right Pillar & Folded Fabric Sleeve with Ribbed Cuff */}
-        {/* Upper Right Pillar */}
         <path
-          d="M 210 116 L 246 116 L 246 194 L 215 194 Z"
-          fill="url(#musoGreenLight)"
+          d="M 30 28 L 52 28 L 52 40 C 52 56, 44 68, 32 74 L 24 64 C 34 58, 36 50, 36 40 L 30 40 Z"
+          fill="url(#grysonEmeraldLight)"
         />
-
-        {/* Folded Drape Sleeve (curved outer fold) */}
         <path
-          d="M 215 174 C 230 170, 246 170, 252 188 L 250 232 C 248 238, 235 242, 222 242 C 210 242, 204 236, 204 228 L 206 182 Z"
-          fill="url(#musoGreenMain)"
+          d="M -20 74 C -4 82, 16 82, 32 74 L 24 64 C 12 70, -2 70, -14 62 Z"
+          fill="url(#grysonEmeraldDark)"
         />
-
-        {/* Sleeve Inner Fold Crease Shadow */}
-        <path
-          d="M 218 184 C 228 190, 236 200, 234 226 L 222 240 C 215 240, 212 234, 212 228 Z"
-          fill="url(#musoGreenDark)"
-        />
-
-        {/* Ribbed Sleeve Cuff at bottom right */}
-        <path
-          d="M 230 216 L 250 216 L 248 238 L 230 238 Z"
-          fill="url(#musoGreenLight)"
-          stroke="#047857"
-          strokeWidth="1.5"
-        />
-        {/* Ribbing lines */}
-        <line x1="235" y1="218" x2="235" y2="236" stroke="#065f46" strokeWidth="1" />
-        <line x1="240" y1="218" x2="240" y2="236" stroke="#065f46" strokeWidth="1" />
-        <line x1="245" y1="218" x2="245" y2="236" stroke="#065f46" strokeWidth="1" />
       </g>
     </svg>
   );
@@ -191,31 +217,79 @@ export const MusoBrandLogo: React.FC<MusoBrandLogoProps> = ({
   if (variant === 'icon' || variant === 'emblem') {
     return (
       <div className={`relative inline-flex items-center justify-center shrink-0 ${selectedSizeClass} ${className}`}>
-        <EmblemSVG className="w-full h-full drop-shadow-sm" />
+        {usePhoto && !imgError ? (
+          <img
+            src={officialLogoImg}
+            alt="Gryson's Apparel Official Logo"
+            className="w-full h-full object-contain rounded-full shadow-xs"
+            onError={() => setImgError(true)}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <EmblemSVG className="w-full h-full drop-shadow-sm" />
+        )}
       </div>
     );
   }
 
-  // Full variant: Emblem + Typography ("MUSO'S APPAREL", "& CUSTOM MERCH", "0735418753")
+  // Card Variant: Clean framed badge replicating the full exact card from user's image
+  if (variant === 'card') {
+    return (
+      <div className={`relative flex flex-col items-center bg-white dark:bg-[#1a202c] p-5 sm:p-7 rounded-3xl border border-neutral-200/80 dark:border-neutral-700/80 shadow-lg ${selectedSizeClass} ${className}`}>
+        <div className="w-full aspect-square max-w-[240px] flex items-center justify-center">
+          {usePhoto && !imgError ? (
+            <img
+              src={officialLogoImg}
+              alt="Gryson's Apparel & Custom Merch Official Logo"
+              className="w-full h-full object-contain rounded-2xl"
+              onError={() => setImgError(true)}
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center">
+              <EmblemSVG className="w-full h-full" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Full variant: Official Logo Graphic Image with Fallback
   return (
     <div className={`flex flex-col items-center text-center select-none ${selectedSizeClass} ${className}`}>
       {/* Central Circular Emblem */}
-      <div className="w-full aspect-square max-w-[240px] drop-shadow-md">
-        <EmblemSVG className="w-full h-full" />
+      <div className="w-full aspect-square max-w-[240px] drop-shadow-md flex items-center justify-center">
+        {usePhoto && !imgError ? (
+          <img
+            src={officialLogoImg}
+            alt="Gryson's Apparel & Custom Merch"
+            className="w-full h-full object-contain rounded-2xl"
+            onError={() => setImgError(true)}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <EmblemSVG className="w-full h-full" />
+        )}
       </div>
 
-      {/* Brand Typography matching uploaded logo design */}
-      <div className="mt-3 space-y-0.5">
-        <h2 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-neutral-900 dark:text-white leading-tight uppercase font-heading">
-          Muso's Apparel
-        </h2>
-        <h3 className="text-xs sm:text-sm md:text-base font-black tracking-tight text-neutral-800 dark:text-neutral-300 uppercase font-heading">
-          & Custom Merch
-        </h3>
-        <p className="text-xs sm:text-sm md:text-base font-extrabold text-[#cc2229] dark:text-[#f87171] tracking-wider font-mono pt-0.5">
-          {phone}
-        </p>
-      </div>
+      {/* Fallback typography in case only SVG is rendered */}
+      {(!usePhoto || imgError) && (
+        <div className="mt-3 space-y-0.5">
+          <h2 className="text-sm sm:text-base md:text-xl font-black tracking-tight text-neutral-900 dark:text-white leading-tight uppercase font-heading">
+            GRYSON'S
+          </h2>
+          <h3 className="text-[11px] sm:text-xs md:text-sm font-black tracking-widest text-neutral-800 dark:text-neutral-300 uppercase font-heading">
+            APPAREL & CUSTOM MERCH
+          </h3>
+          <p className="text-xs sm:text-sm md:text-base font-extrabold text-[#b91c1c] dark:text-[#f87171] tracking-wider font-mono pt-0.5">
+            {phone}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
+
+// Aliased export to preserve backwards compatibility across existing components
+export const MusoBrandLogo = GrysonBrandLogo;

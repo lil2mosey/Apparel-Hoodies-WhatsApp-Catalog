@@ -1,6 +1,6 @@
 {
   "name": "Apparel & Hoodies WhatsApp Catalog",
-  "description": "Direct WhatsApp ordering catalog for Muso's apparel business including hoodies, polo shirts, sweatshirts, caps, and plain t-shirts with size, color, and custom text customization.",
+  "description": "Direct WhatsApp ordering catalog for Gryson's apparel business including hoodies, tracksuits, ponchos, polo shirts, sweatshirts, caps, and plain t-shirts with size, color, and custom text customization.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

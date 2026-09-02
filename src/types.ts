@@ -3,6 +3,8 @@ export type ProductCategory =
   | 'hoodies' 
   | 'sweatshirts' 
   | 'polo-shirts' 
+  | 'ponchos'
+  | 'tracksuits'
   | 'caps' 
   | 'plain-tshirts' 
   | 'vests';
@@ -19,7 +21,7 @@ export type ApparelSize = 'XS' | 'S' | 'M' | 'L' | 'XL' | '2XL' | '3XL' | 'One S
 export interface Product {
   id: string;
   name: string;
-  category: 'hoodies' | 'sweatshirts' | 'polo-shirts' | 'caps' | 'plain-tshirts' | 'vests';
+  category: 'hoodies' | 'sweatshirts' | 'polo-shirts' | 'ponchos' | 'tracksuits' | 'caps' | 'plain-tshirts' | 'vests';
   subtitle: string;
   description: string;
   price: number; // in KSh
@@ -32,7 +34,7 @@ export interface Product {
   fabric: string;
   fit: string;
   features: string[];
-  customizable: boolean; // supports custom name printing/embroidery like "Muso"
+  customizable: boolean; // supports custom name printing/embroidery like "Gryson"
   inStock?: boolean;
   stockQty?: number;
   uploadedImageUrl?: string; // Custom uploaded real photo

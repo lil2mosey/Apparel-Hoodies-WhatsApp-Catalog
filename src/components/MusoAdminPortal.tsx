@@ -243,6 +243,8 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       if (clean.includes('pullover') && (pName.includes('pullover') || pId.includes('pullover'))) return true;
       if (clean.includes('polo') && (pName.includes('polo') || pCat.includes('polo'))) return true;
       if ((clean.includes('sweatshirt') || clean.includes('sweater') || clean.includes('crewneck')) && (pName.includes('sweatshirt') || pCat.includes('sweatshirt'))) return true;
+      if ((clean.includes('poncho') || clean.includes('fringe') || clean.includes('maasai')) && (pName.includes('poncho') || pCat.includes('poncho'))) return true;
+      if ((clean.includes('tracksuit') || clean.includes('jogger') || clean.includes('athletic')) && (pName.includes('tracksuit') || pCat.includes('tracksuit'))) return true;
       if ((clean.includes('cap') || clean.includes('hat') || clean.includes('baseball')) && (pName.includes('cap') || pCat.includes('caps'))) return true;
       if ((clean.includes('plain') || clean.includes('tshirt') || clean.includes('t-shirt') || clean.includes('tee')) && (pName.includes('t-shirt') || pCat.includes('plain-tshirts'))) return true;
       if (clean.includes('hoodie') && !clean.includes('half') && !clean.includes('zip') && (pName.includes('pullover') || pName.includes('hoodie'))) return true;
@@ -570,7 +572,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-base sm:text-lg font-black tracking-tight font-heading text-neutral-900 dark:text-white">
-                    Muso Studio Manager
+                    Gryson Studio Manager
                   </h1>
                   <span className="text-[10px] font-black uppercase tracking-wider bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 px-2 py-0.5 rounded-full">
                     Owner Portal

@@ -62,7 +62,7 @@ export const OwnerSetupPasslockForm: React.FC<OwnerSetupPasslockFormProps> = ({
       <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl p-3.5 flex items-start gap-2.5">
         <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed font-medium">
-          <strong>First-Time Security Setup:</strong> Create your private master passlock. You will use this key whenever you access the Muso Owner Studio.
+          <strong>First-Time Security Setup:</strong> Create your private master passlock. You will use this key whenever you access the Gryson Owner Studio.
         </p>
       </div>
 

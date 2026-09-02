@@ -1,11 +1,11 @@
 import { Product, ColorOption, StoreContact, ProductCategory } from '../types';
 
 export const DEFAULT_STORE_CONTACT: StoreContact = {
-  name: "Muso",
+  name: "Gryson",
   phone: "0735418753",
   intlPhone: "254735418753",
-  businessName: "Muso's Apparel & Custom Merch",
-  tagline: "Quality Hoodies, Polo Shirts, Sweatshirts, Plain Tees & Caps",
+  businessName: "Gryson's Apparel & Custom Merch",
+  tagline: "Quality Hoodies, Polo Shirts, Sweatshirts, Ponchos, Tracksuits, Plain Tees & Caps",
   location: "Nairobi, Kenya • Delivery countrywide"
 };
 
@@ -307,6 +307,69 @@ export const PRODUCTS: Product[] = [
       'Windproof front storm flap over zip'
     ],
     customizable: false
+  },
+  {
+    id: 'fleece-poncho',
+    name: 'Fringed Warm Fleece & Maasai Poncho',
+    category: 'ponchos',
+    subtitle: 'Warm draped fleece poncho with handcrafted fringe tassel border',
+    description: 'Signature oversized draped fleece poncho featuring a comfortable open-neck silhouette, reinforced shoulder drape, and handcrafted fringe tassel hem. Ideal for cold Nairobi evenings, outdoor safari events, stylish casual streetwear, or custom embroidered initials.',
+    price: 2500,
+    currency: 'KSh',
+    image: 'poncho-fleece',
+    featured: true,
+    popularBadge: 'New Arrival',
+    colors: [
+      COMMON_COLORS.maroon,
+      COMMON_COLORS.black,
+      COMMON_COLORS.forestGreen,
+      COMMON_COLORS.crimsonRed,
+      COMMON_COLORS.navyBlue,
+      COMMON_COLORS.mustardYellow,
+      COMMON_COLORS.heatherGrey,
+      COMMON_COLORS.beigeKhaki
+    ],
+    sizes: ['One Size'],
+    fabric: '360 GSM Heavyweight Thermal Plush Fleece & Woven Blend',
+    fit: 'Relaxed Draped Universal Fit',
+    features: [
+      'Hand-knotted perimeter fringe tassel hem',
+      'Comfort-cut open neckline with reinforced hem',
+      'Ultra-warm thermal fleece fabric blend',
+      'Custom name or brand embroidery ready'
+    ],
+    customizable: true
+  },
+  {
+    id: 'athletic-tracksuit',
+    name: '2-Piece Heavyweight Athletic Fleece Tracksuit',
+    category: 'tracksuits',
+    subtitle: 'Matching full-zip warm-up jacket and tapered jogger pants set',
+    description: 'Complete premium 2-piece fleece tracksuit set. Features a high-collar full-zip jacket with zippered side pockets and ribbed cuffs, paired with matching elastic-waistband tapered jogger sweatpants with deep pockets and ankle cuffs. Perfect for casual streetwear, team kits, athletic warm-ups, or custom printed brand merchandise.',
+    price: 3800,
+    currency: 'KSh',
+    image: 'tracksuit-set',
+    featured: true,
+    popularBadge: 'Complete Set',
+    colors: [
+      COMMON_COLORS.black,
+      COMMON_COLORS.navyBlue,
+      COMMON_COLORS.heatherGrey,
+      COMMON_COLORS.maroon,
+      COMMON_COLORS.forestGreen,
+      COMMON_COLORS.royalBlue,
+      COMMON_COLORS.crimsonRed
+    ],
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    fabric: '340 GSM Heavyweight Brushed Cotton-Poly Athletic Fleece',
+    fit: 'Athletic Tapered 2-Piece Fit',
+    features: [
+      'Includes both Full-Zip Jacket + Matching Cuffed Joggers',
+      'Heavy-duty smooth zipper and zippered side pockets',
+      'Elasticized drawcord waistband & ribbed ankle cuffs',
+      'Custom name printing & team embroidery ready'
+    ],
+    customizable: true
   }
 ];
 
@@ -315,6 +378,8 @@ export const CATEGORIES: { id: ProductCategory; label: string; count: number }[]
   { id: 'hoodies', label: 'Hoodies', count: PRODUCTS.filter(p => p.category === 'hoodies').length },
   { id: 'polo-shirts', label: 'Polo Shirts', count: PRODUCTS.filter(p => p.category === 'polo-shirts').length },
   { id: 'sweatshirts', label: 'Sweatshirts', count: PRODUCTS.filter(p => p.category === 'sweatshirts').length },
+  { id: 'ponchos', label: 'Ponchos', count: PRODUCTS.filter(p => p.category === 'ponchos').length },
+  { id: 'tracksuits', label: 'Tracksuits', count: PRODUCTS.filter(p => p.category === 'tracksuits').length },
   { id: 'caps', label: 'Caps', count: PRODUCTS.filter(p => p.category === 'caps').length },
   { id: 'plain-tshirts', label: 'Plain T-Shirts', count: PRODUCTS.filter(p => p.category === 'plain-tshirts').length },
   { id: 'vests', label: 'Vests & Jackets', count: PRODUCTS.filter(p => p.category === 'vests').length },
@@ -329,6 +394,14 @@ export const SIZE_CHART_DATA = {
     { size: '2XL', chest: '52-54"', length: '31"', sleeve: '29"' },
     { size: '3XL', chest: '56-58"', length: '32"', sleeve: '30"' }
   ],
+  tracksuits: [
+    { size: 'S', chest: '38"', jacketLength: '26"', waist: '28-30"', pantLength: '39"' },
+    { size: 'M', chest: '41"', jacketLength: '27"', waist: '31-33"', pantLength: '40"' },
+    { size: 'L', chest: '44"', jacketLength: '28"', waist: '34-36"', pantLength: '41"' },
+    { size: 'XL', chest: '47"', jacketLength: '29"', waist: '37-39"', pantLength: '42"' },
+    { size: '2XL', chest: '50"', jacketLength: '30"', waist: '40-43"', pantLength: '43"' },
+    { size: '3XL', chest: '53"', jacketLength: '31"', waist: '44-47"', pantLength: '44"' }
+  ],
   polos: [
     { size: 'S', chest: '36-38"', length: '27"', shoulder: '17"' },
     { size: 'M', chest: '39-41"', length: '28"', shoulder: '18"' },
@@ -336,6 +409,9 @@ export const SIZE_CHART_DATA = {
     { size: 'XL', chest: '45-47"', length: '30"', shoulder: '20"' },
     { size: '2XL', chest: '48-50"', length: '31"', shoulder: '21"' },
     { size: '3XL', chest: '51-53"', length: '32"', shoulder: '22"' }
+  ],
+  ponchos: [
+    { size: 'One Size', width: '130 cm (Draped Span)', length: '88 cm (From Shoulder to Fringe)', fit: 'Universal Draped Unisex Fit' }
   ],
   caps: [
     { size: 'One Size', circumference: '54 - 60 cm (Adjustable Strap)', crown: '11.5 cm', brim: '7.5 cm' }

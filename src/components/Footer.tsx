@@ -77,7 +77,7 @@ export const Footer: React.FC<FooterProps> = ({
               <span className="text-base font-bold text-white font-heading">{storeContact.businessName}</span>
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              Premium plain and custom branded hoodies, polo shirts, sweatshirts, plain tees, and caps with direct WhatsApp ordering.
+              Premium plain and custom branded hoodies, tracksuits, ponchos, polo shirts, sweatshirts, plain tees, and caps with direct WhatsApp ordering.
             </p>
             <div className="flex items-center gap-2 text-xs text-neutral-400">
               <MapPin className="w-4 h-4 text-neutral-400 shrink-0" />
@@ -95,6 +95,22 @@ export const Footer: React.FC<FooterProps> = ({
                   className="hover:text-white transition-colors"
                 >
                   Pullover & Zip-Up Hoodies
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onSelectCategory('tracksuits')}
+                  className="hover:text-white transition-colors font-medium text-emerald-400"
+                >
+                  2-Piece Athletic Tracksuits
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onSelectCategory('ponchos')}
+                  className="hover:text-white transition-colors font-medium text-emerald-400"
+                >
+                  Fringed Fleece & Maasai Ponchos
                 </button>
               </li>
               <li>
@@ -168,7 +184,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">Direct WhatsApp Ordering</h4>
             <p className="text-xs text-neutral-400">
-              Questions regarding colors, bulk orders, or custom designs? Chat directly on WhatsApp with Muso:
+              Questions regarding colors, bulk orders, or custom designs? Chat directly on WhatsApp with Gryson:
             </p>
             <a
               id="footer-whatsapp-chat-button"
@@ -200,7 +216,7 @@ export const Footer: React.FC<FooterProps> = ({
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-amber-300 text-xs font-bold transition-colors border border-amber-500/30"
               >
                 <Lock className="w-3.5 h-3.5 text-amber-400" />
-                <span>Muso Studio (/admin)</span>
+                <span>Gryson Studio (/admin)</span>
               </button>
             )}
           </div>

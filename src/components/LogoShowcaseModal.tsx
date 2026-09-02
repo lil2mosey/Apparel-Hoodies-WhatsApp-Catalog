@@ -57,7 +57,7 @@ export const LogoShowcaseModal: React.FC<LogoShowcaseModalProps> = ({
               <span>Authentic Kenyan Apparel Brand</span>
             </div>
             <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Specialized in high-grade <strong>Hoodies</strong>, <strong>Polo Shirts</strong>, <strong>Sweatshirts</strong>, <strong>Caps</strong> & <strong>Plain Tees</strong>. Custom prints & embroidery available on request.
+              Specialized in high-grade <strong>Hoodies</strong>, <strong>Tracksuits</strong>, <strong>Ponchos</strong>, <strong>Polo Shirts</strong>, <strong>Sweatshirts</strong>, <strong>Caps</strong> & <strong>Plain Tees</strong>. Custom prints & embroidery available on request.
             </p>
           </div>
 
@@ -78,7 +78,7 @@ export const LogoShowcaseModal: React.FC<LogoShowcaseModalProps> = ({
               className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Chat with Muso</span>
+              <span>Chat with {storeContact.name}</span>
             </a>
           </div>
         </div>
@@ -86,7 +86,7 @@ export const LogoShowcaseModal: React.FC<LogoShowcaseModalProps> = ({
         {/* Footer */}
         <div className="px-6 py-3.5 border-t border-[#e5dfd3] dark:border-[#2d3748] bg-[#F9F8F3] dark:bg-[#12161c] text-center">
           <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-            Muso's Apparel & Custom Merch • Nairobi, Kenya • Countrywide Deliveries
+            {storeContact.businessName} • Nairobi, Kenya • Countrywide Deliveries
           </p>
         </div>
       </div>

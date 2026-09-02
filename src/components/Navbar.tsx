@@ -100,7 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={onOpenLogoShowcase}
           className="group flex items-center gap-3 text-left focus:outline-hidden"
-          title="Click to view full official Muso brand logo"
+          title="Click to view full official brand logo"
         >
           <MusoBrandLogo variant="emblem" size="md" className="shrink-0 group-hover:scale-105 transition-transform" />
           <div>
@@ -110,11 +110,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               </h1>
               <span className="hidden md:inline-flex items-center gap-0.5 text-[10px] font-bold text-neutral-800 dark:text-neutral-200 bg-[#EAE5DB] dark:bg-[#262e3b] border border-[#d8d0c3] dark:border-[#374151] px-2 py-0.5 rounded-full">
                 <Sparkles className="w-2.5 h-2.5 text-amber-600" />
-                Logo Info
+                Official Logo
               </span>
             </div>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400 hidden sm:block font-medium">
-              Hoodies • Polo Shirts • Sweatshirts • Caps • Plain Tees
+              Hoodies • Tracksuits • Ponchos • Polo Shirts • Sweatshirts • Caps • Tees
             </p>
           </div>
         </button>
@@ -128,7 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search hoodies, polo shirts, colors, caps..."
+              placeholder="Search tracksuits, ponchos, hoodies, polos, colors..."
               className="w-full pl-9 pr-4 py-2 rounded-xl bg-neutral-100 dark:bg-[#12161c] border border-neutral-200 dark:border-neutral-700 focus:bg-white dark:focus:bg-[#181f2a] focus:border-neutral-900 dark:focus:border-white text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all outline-hidden"
             />
           </div>

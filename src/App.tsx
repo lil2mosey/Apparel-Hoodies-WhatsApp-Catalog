@@ -190,7 +190,7 @@ export default function App() {
 
   // Products state (persisted to localStorage)
   const [products, setProducts] = useState<Product[]>(() => {
-    const CURRENT_VERSION = 'v2_prices_half_hoodie';
+    const CURRENT_VERSION = 'v3_grysons_ponchos_tracksuits';
     try {
       const version = localStorage.getItem('muso_catalog_version');
       const saved = localStorage.getItem('muso_products_catalog');
@@ -211,7 +211,7 @@ export default function App() {
     setProducts(newProducts);
     try {
       localStorage.setItem('muso_products_catalog', JSON.stringify(newProducts));
-      localStorage.setItem('muso_catalog_version', 'v2_prices_half_hoodie');
+      localStorage.setItem('muso_catalog_version', 'v3_grysons_ponchos_tracksuits');
     } catch {
       // ignore
     }
@@ -219,9 +219,15 @@ export default function App() {
 
   // Store contact state (persisted to localStorage)
   const [storeContact, setStoreContact] = useState<StoreContact>(() => {
+    const CONTACT_VERSION = 'v3_gryson';
     try {
+      const savedVersion = localStorage.getItem('muso_contact_version');
       const saved = localStorage.getItem('muso_store_contact');
-      if (saved) return JSON.parse(saved);
+      if (saved && savedVersion === CONTACT_VERSION) {
+        return JSON.parse(saved);
+      }
+      localStorage.setItem('muso_contact_version', CONTACT_VERSION);
+      localStorage.setItem('muso_store_contact', JSON.stringify(DEFAULT_STORE_CONTACT));
     } catch {
       // ignore
     }
@@ -553,11 +559,11 @@ export default function App() {
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white font-heading">
-                Quality Hoodies, Polo Shirts, Sweatshirts & Caps
+                Quality Hoodies, Tracksuits, Ponchos, Polo Shirts & Tees
               </h1>
 
               <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-xl">
-                Select your apparel size and color, then tap <strong>Send details to WhatsApp</strong>. Chat with <strong>{storeContact.name} ({storeContact.phone})</strong> to finalize payment (M-Pesa) and countrywide delivery!
+                Select your apparel size and color, then tap <strong>Send details to WhatsApp</strong>. Chat with <strong>{storeContact.name} ({storeContact.phone})</strong> to finalize payment (M-Pesa) and prompt countrywide delivery!
               </p>
 
               <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">

@@ -1582,16 +1582,16 @@ Please confirm stock availability and M-Pesa payment details!`}
         {/* ========================================================================= */}
         {activeTab === 'backup' && (
           <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in duration-200">
-            {/* Live Shared Link & Server Persistence Status */}
+            {/* Live Shared Link & Cloud Firestore Real-time Auto-Sync Status */}
             <div className="bg-emerald-50 dark:bg-emerald-950/30 p-6 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 <h3 className="text-sm font-black text-emerald-950 dark:text-emerald-200">
-                  Shared Link & Server Persistence Active
+                  Automatic Real-time Cloud Sync Active
                 </h3>
               </div>
               <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
-                All photos you upload and catalog edits you make are automatically saved directly to the server storage. Anyone who opens your shared website link on any phone, tablet, or laptop will see the real photos and updated prices immediately.
+                You do <strong>not</strong> need to press any sync button! Every time you pick a photo or edit a product, it uploads directly to Cloud Firestore automatically in the background. Anyone opening your website on any phone, tablet, or browser receives the live updates instantly.
               </p>
               <div className="pt-2 flex flex-wrap gap-2">
                 <button
@@ -1605,19 +1605,7 @@ Please confirm stock availability and M-Pesa payment details!`}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-xs"
                 >
                   <Copy className="w-3.5 h-3.5" />
-                  <span>Copy Customer Share Link</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSaveProducts([...products]);
-                    setUploadSuccessNotification('All catalog items and photos re-synchronized to server!');
-                    setTimeout(() => setUploadSuccessNotification(null), 3000);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-700 text-xs font-bold transition-all hover:bg-emerald-100"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Force Re-Sync to Server</span>
+                  <span>Copy Storefront Link for Customers</span>
                 </button>
               </div>
             </div>

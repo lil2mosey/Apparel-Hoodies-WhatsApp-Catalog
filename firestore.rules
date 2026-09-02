@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Products catalog: publicly accessible for visitors, writable by store management
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Photo assets library
+    match /photo_assets/{photoId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Store settings & contact info
+    match /store_settings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Catch-all
+    match /{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}

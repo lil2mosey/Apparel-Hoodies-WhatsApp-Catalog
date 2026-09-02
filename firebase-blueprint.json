@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "Product": {
+      "collection": "products",
+      "fields": {
+        "id": { "type": "string", "description": "Unique product identifier" },
+        "name": { "type": "string", "description": "Name of the apparel item" },
+        "price": { "type": "number", "description": "Price in KES" },
+        "description": { "type": "string", "description": "Item description" },
+        "category": { "type": "string", "description": "Category name" },
+        "image": { "type": "string", "description": "Visual graphic key or image URL" },
+        "uploadedImageUrl": { "type": "string", "description": "Uploaded image URL or photo data" },
+        "inStock": { "type": "boolean", "description": "Stock status" },
+        "colors": { "type": "array", "description": "Available colors" },
+        "sizes": { "type": "array", "description": "Available sizes" },
+        "updatedAt": { "type": "string", "description": "Timestamp of last update" }
+      }
+    },
+    "PhotoAsset": {
+      "collection": "photo_assets",
+      "fields": {
+        "id": { "type": "string", "description": "Unique photo identifier" },
+        "name": { "type": "string", "description": "Filename or photo name" },
+        "url": { "type": "string", "description": "Photo image URL or data" },
+        "category": { "type": "string", "description": "Associated category" },
+        "dateAdded": { "type": "string", "description": "Date added" },
+        "fileSize": { "type": "string", "description": "File size label" },
+        "assignedProductId": { "type": "string", "description": "Target product ID" }
+      }
+    },
+    "StoreSettings": {
+      "collection": "store_settings",
+      "fields": {
+        "phone": { "type": "string", "description": "WhatsApp phone number" },
+        "storeName": { "type": "string", "description": "Store name" },
+        "address": { "type": "string", "description": "Physical address" },
+        "email": { "type": "string", "description": "Support email" }
+      }
+    }
+  }
+}

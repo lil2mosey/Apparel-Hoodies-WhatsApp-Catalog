@@ -65,13 +65,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Visual: Uploaded Real Photo OR Dynamic Mockup */}
         {hasUploadedPhoto ? (
-          <div className="relative flex items-center justify-center overflow-hidden rounded-2xl bg-[#EAE5DB] dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] p-4 aspect-4/3 group-hover:scale-[1.02] transition-transform duration-300">
+          <div className="relative flex items-center justify-center overflow-hidden rounded-2xl bg-neutral-100 dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] aspect-[4/3] group-hover:scale-[1.02] transition-transform duration-300">
             <img
               src={product.uploadedImageUrl}
               alt={product.name}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover object-center"
               referrerPolicy="no-referrer"
             />
+            <div className="absolute bottom-2 left-2 bg-neutral-900/80 backdrop-blur-xs text-white text-[9px] font-black px-2 py-0.5 rounded-md">
+              Real Photo
+            </div>
           </div>
         ) : (
           <ProductVisual

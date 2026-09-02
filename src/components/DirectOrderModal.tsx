@@ -95,11 +95,11 @@ export const DirectOrderModal: React.FC<DirectOrderModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center bg-[#F9F8F3] dark:bg-[#12161c] p-4 rounded-2xl border border-[#dfd7c9] dark:border-[#2d3748]">
             <div className="sm:col-span-5 flex items-center justify-center">
               {hasUploadedPhoto ? (
-                <div className="w-full aspect-square rounded-xl bg-[#EAE5DB] dark:bg-[#1a202c] border border-[#d8d0c3] dark:border-[#2d3748] p-3 flex items-center justify-center">
+                <div className="w-full aspect-[4/3] rounded-xl bg-neutral-100 dark:bg-[#1a202c] border border-[#d8d0c3] dark:border-[#2d3748] overflow-hidden flex items-center justify-center">
                   <img
                     src={product.uploadedImageUrl}
                     alt={product.name}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover object-center"
                     referrerPolicy="no-referrer"
                   />
                 </div>

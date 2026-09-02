@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Send, Ruler, Sparkles, Check, CheckCircle2, MessageSquare, Shirt } from 'lucide-react';
+import { X, Send, Ruler, Sparkles, Check, CheckCircle2, MessageSquare, Shirt, Maximize2, Minimize2, ZoomIn } from 'lucide-react';
 import { Product, ColorOption, ApparelSize, StoreContact } from '../types';
 import { ProductVisual } from './ProductVisual';
 import { formatKSh } from '../utils/whatsapp';
@@ -29,6 +29,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [customText, setCustomText] = useState<string>('');
   const [customType, setCustomType] = useState<'print' | 'embroidery'>('print');
   const [enableCustomization, setEnableCustomization] = useState(false);
+  const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain'>('cover');
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const totalPrice = product.price * quantity;
   const hasUploadedPhoto = !!product.uploadedImageUrl;
@@ -77,13 +79,45 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <div className="lg:col-span-6 flex flex-col items-center space-y-4">
               <div className="w-full flex items-center justify-center">
                 {hasUploadedPhoto ? (
-                  <div className="w-full aspect-square rounded-2xl bg-[#EAE5DB] dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] p-6 flex items-center justify-center">
+                  <div className="w-full aspect-[4/5] max-h-[480px] rounded-2xl bg-neutral-950/5 dark:bg-neutral-950/40 border border-[#d8d0c3] dark:border-[#2d3748] overflow-hidden flex items-center justify-center relative shadow-sm group">
                     <img
                       src={product.uploadedImageUrl}
                       alt={product.name}
-                      className="w-full h-full object-contain"
+                      className={`w-full h-full transition-all duration-300 ${
+                        imageFitMode === 'cover'
+                          ? 'object-cover object-center group-hover:scale-105'
+                          : 'object-contain p-2'
+                      }`}
                       referrerPolicy="no-referrer"
                     />
+
+                    {/* View Controls: Fit / Fill Toggle */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-neutral-900/80 backdrop-blur-md rounded-xl p-1 text-white shadow-lg border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setImageFitMode(imageFitMode === 'cover' ? 'contain' : 'cover')}
+                        className="px-2.5 py-1 text-[11px] font-bold rounded-lg hover:bg-white/20 transition-colors flex items-center gap-1"
+                        title={imageFitMode === 'cover' ? 'Switch to uncropped full view' : 'Switch to edge-to-edge fill'}
+                      >
+                        {imageFitMode === 'cover' ? (
+                          <>
+                            <Minimize2 className="w-3 h-3" />
+                            <span>Uncrop</span>
+                          </>
+                        ) : (
+                          <>
+                            <Maximize2 className="w-3 h-3" />
+                            <span>Fill Frame</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Quick indicator */}
+                    <div className="absolute bottom-3 left-3 bg-neutral-900/75 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-white/10 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Original Garment Photo</span>
+                    </div>
                   </div>
                 ) : (
                   <ProductVisual

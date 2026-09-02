@@ -107,6 +107,8 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
   const [uploadCategory, setUploadCategory] = useState<ProductCategory>('all');
   const [photoUrlInput, setPhotoUrlInput] = useState('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [uploadSuccessNotification, setUploadSuccessNotification] = useState<string | null>(null);
+  const [uploadTargetProductId, setUploadTargetProductId] = useState<string | undefined>(undefined);
 
   // Mockup Generator Studio State
   const [mockupGarmentType, setMockupGarmentType] = useState<ProductCategory>('hoodies');
@@ -227,7 +229,31 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     setCustomColorName('');
   };
 
-  // Handle Photo File Upload
+  // Helper to find similar products based on filename or search keywords
+  const findSimilarProducts = (text: string, currentProducts: Product[]): Product[] => {
+    const clean = text.toLowerCase().replace(/[-_.]/g, ' ');
+    return currentProducts.filter(p => {
+      const pName = p.name.toLowerCase();
+      const pCat = p.category.toLowerCase().replace('-', ' ');
+      const pId = p.id.toLowerCase();
+      
+      // Check explicit keyword associations
+      if ((clean.includes('half') || clean.includes('sleeveless')) && (pName.includes('half') || pName.includes('sleeveless') || pId.includes('half'))) return true;
+      if (clean.includes('zip') && (pName.includes('zip') || pId.includes('zip'))) return true;
+      if (clean.includes('pullover') && (pName.includes('pullover') || pId.includes('pullover'))) return true;
+      if (clean.includes('polo') && (pName.includes('polo') || pCat.includes('polo'))) return true;
+      if ((clean.includes('sweatshirt') || clean.includes('sweater') || clean.includes('crewneck')) && (pName.includes('sweatshirt') || pCat.includes('sweatshirt'))) return true;
+      if ((clean.includes('cap') || clean.includes('hat') || clean.includes('baseball')) && (pName.includes('cap') || pCat.includes('caps'))) return true;
+      if ((clean.includes('plain') || clean.includes('tshirt') || clean.includes('t-shirt') || clean.includes('tee')) && (pName.includes('t-shirt') || pCat.includes('plain-tshirts'))) return true;
+      if (clean.includes('hoodie') && !clean.includes('half') && !clean.includes('zip') && (pName.includes('pullover') || pName.includes('hoodie'))) return true;
+      
+      // General token matching
+      const tokens = clean.split(/\s+/).filter(t => t.length > 2 && !['image', 'whatsapp', 'img', 'photo', 'screen', 'shot', 'file'].includes(t));
+      return tokens.some(t => pName.includes(t) || pCat.includes(t) || pId.includes(t));
+    });
+  };
+
+  // Handle Photo File Upload with Auto-Matching
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, targetProductId?: string) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -238,6 +264,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       return;
     }
 
+    const effectiveTargetId = targetProductId || uploadTargetProductId;
     setIsUploadingPhoto(true);
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -251,13 +278,13 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
         category: uploadCategory,
         dateAdded: new Date().toLocaleDateString(),
         fileSize: `${(file.size / 1024).toFixed(1)} KB`,
-        assignedProductId: targetProductId
+        assignedProductId: effectiveTargetId
       };
 
       const updatedAssets = [newAsset, ...photoAssets];
       onSavePhotoAssets(updatedAssets);
 
-      // If uploaded directly in product editor
+      // If uploaded directly in product editor modal
       if (editingProduct) {
         setEditingProduct({
           ...editingProduct,
@@ -266,11 +293,76 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
         });
       }
 
+      // 1. Direct Target Product ID passed
+      if (effectiveTargetId) {
+        const targetProduct = products.find(p => p.id === effectiveTargetId);
+        const updated = products.map(p => {
+          if (p.id === effectiveTargetId) {
+            return {
+              ...p,
+              uploadedImageUrl: dataUrl,
+              image: dataUrl
+            };
+          }
+          return p;
+        });
+        onSaveProducts(updated);
+        setUploadSuccessNotification(`Photo updated for "${targetProduct?.name || 'Item'}" and is now active on customer store!`);
+        setTimeout(() => setUploadSuccessNotification(null), 4500);
+      } else {
+        // 2. Auto-Match based on similar product name
+        const matched = findSimilarProducts(file.name, products);
+        if (matched.length > 0) {
+          const matchedIds = new Set(matched.map(m => m.id));
+          const updated = products.map(p => {
+            if (matchedIds.has(p.id)) {
+              return {
+                ...p,
+                uploadedImageUrl: dataUrl,
+                image: dataUrl
+              };
+            }
+            return p;
+          });
+          onSaveProducts(updated);
+          const matchedNames = matched.map(m => m.name).join(', ');
+          setUploadSuccessNotification(`Photo matched by filename and updated for: ${matchedNames} on customer store!`);
+          setTimeout(() => setUploadSuccessNotification(null), 5000);
+        } else {
+          setUploadSuccessNotification(`Photo "${file.name}" saved to Photo Library. Click 'Assign to Product' to attach to customer items.`);
+          setTimeout(() => setUploadSuccessNotification(null), 4000);
+        }
+      }
+
       setIsUploadingPhoto(false);
+      setUploadTargetProductId(undefined);
       if (e.target) e.target.value = '';
     };
 
     reader.readAsDataURL(file);
+  };
+
+  // Trigger file upload for a specific product
+  const triggerUploadForProduct = (productId: string) => {
+    setUploadTargetProductId(productId);
+    fileInputRef.current?.click();
+  };
+
+  // Remove uploaded photo from a product (reverts to standard vector preview)
+  const handleRemovePhotoFromProduct = (productId: string) => {
+    const updated = products.map(p => {
+      if (p.id === productId) {
+        return {
+          ...p,
+          uploadedImageUrl: undefined,
+          image: p.category.includes('hoodie') ? (p.name.toLowerCase().includes('half') ? 'hoodie-half' : 'hoodie-pullover') : p.category
+        };
+      }
+      return p;
+    });
+    onSaveProducts(updated);
+    setUploadSuccessNotification('Photo removed. Item reverted to high-precision graphic on customer store.');
+    setTimeout(() => setUploadSuccessNotification(null), 3000);
   };
 
   // Add photo via Web URL
@@ -288,6 +380,8 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
     onSavePhotoAssets([newAsset, ...photoAssets]);
     setPhotoUrlInput('');
+    setUploadSuccessNotification('Image URL added to photo library.');
+    setTimeout(() => setUploadSuccessNotification(null), 3000);
   };
 
   // Delete photo asset
@@ -299,6 +393,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
   // Assign photo to product
   const handleAssignPhotoToProduct = (photoUrl: string, productId: string) => {
+    const targetProduct = products.find(p => p.id === productId);
     const updated = products.map(p => {
       if (p.id === productId) {
         return {
@@ -310,7 +405,31 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       return p;
     });
     onSaveProducts(updated);
-    alert('Photo assigned successfully to product!');
+    setUploadSuccessNotification(`Photo assigned to "${targetProduct?.name || 'Item'}" and updated on customer storefront!`);
+    setTimeout(() => setUploadSuccessNotification(null), 4000);
+  };
+
+  // Auto-apply photo to all similar items
+  const handleApplyPhotoToSimilarProducts = (photoUrl: string, photoName: string) => {
+    const matched = findSimilarProducts(photoName, products);
+    if (matched.length === 0) {
+      alert(`No products found matching "${photoName}". Please use the dropdown to assign directly.`);
+      return;
+    }
+    const matchedIds = new Set(matched.map(m => m.id));
+    const updated = products.map(p => {
+      if (matchedIds.has(p.id)) {
+        return {
+          ...p,
+          uploadedImageUrl: photoUrl,
+          image: photoUrl
+        };
+      }
+      return p;
+    });
+    onSaveProducts(updated);
+    setUploadSuccessNotification(`Photo applied to all matching items (${matched.map(m => m.name).join(', ')}) on customer store!`);
+    setTimeout(() => setUploadSuccessNotification(null), 5000);
   };
 
   // Save Store Settings
@@ -487,12 +606,12 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
               id="switch-to-customer-view-btn"
               type="button"
               onClick={onSwitchToCustomerView}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 text-xs font-black shadow-xs transition-all active:scale-98"
-              title="Preview how customers see your store"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 text-xs font-black shadow-md hover:shadow-lg transition-all active:scale-98"
+              title="Exit admin panel and return to Customer Storefront"
             >
-              <Eye className="w-4 h-4" />
-              <span className="hidden sm:inline">Preview Customer Store</span>
-              <span className="sm:hidden">Store</span>
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Exit to Customer Store</span>
+              <span className="sm:hidden">Exit Store</span>
             </button>
 
             {/* Lock / Log Out */}
@@ -581,7 +700,23 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       </header>
 
       {/* Main Admin Content Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Real-time Notification Banner */}
+        {uploadSuccessNotification && (
+          <div className="p-4 rounded-2xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-200" />
+              <span>{uploadSuccessNotification}</span>
+            </div>
+            <button
+              onClick={() => setUploadSuccessNotification(null)}
+              className="p-1 hover:bg-emerald-700 rounded-lg transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* ========================================================================= */}
         {/* TAB 1: PRODUCT CATALOG MANAGEMENT */}
         {/* ========================================================================= */}
@@ -594,7 +729,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                   Apparel Catalog & Pricing Manager
                 </h2>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  Add new items, update prices, change cover photos, and toggle stock availability.
+                  Add new items, update prices, change cover photos, and toggle stock availability. One item per customer line.
                 </p>
               </div>
 
@@ -681,25 +816,54 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                         </div>
                       </div>
 
-                      {/* Photo Thumbnail Stage */}
-                      <div className="relative aspect-16/9 rounded-xl bg-[#EAE5DB] dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] overflow-hidden flex items-center justify-center p-2">
+                      {/* Photo Thumbnail Stage with 1-Click Uploader */}
+                      <div className="relative group aspect-16/9 rounded-xl bg-neutral-100 dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] overflow-hidden flex items-center justify-center">
                         {hasUploadedPhoto ? (
                           <img
                             src={product.uploadedImageUrl}
                             alt={product.name}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-cover object-center"
                             referrerPolicy="no-referrer"
                           />
                         ) : (
                           <div className="flex flex-col items-center text-center p-3 text-neutral-500 dark:text-neutral-400">
                             <Shirt className="w-8 h-8 opacity-60 mb-1" />
-                            <span className="text-xs font-semibold">Standard Mockup</span>
+                            <span className="text-xs font-semibold">Standard Vector Graphic</span>
                           </div>
                         )}
+
+                        {/* Quick Overlay Action on Image */}
+                        <div className="absolute inset-0 bg-neutral-950/70 backdrop-blur-2xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                          <button
+                            type="button"
+                            onClick={() => triggerUploadForProduct(product.id)}
+                            className="px-3 py-1.5 rounded-lg bg-white text-neutral-900 font-bold text-xs shadow-md hover:bg-neutral-100 flex items-center gap-1.5 transition-transform active:scale-95"
+                            title="Upload/Replace Photo for this item"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>{hasUploadedPhoto ? 'Change Photo' : 'Upload Photo'}</span>
+                          </button>
+                          {hasUploadedPhoto && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePhotoFromProduct(product.id)}
+                              className="px-2.5 py-1.5 rounded-lg bg-red-600 text-white font-bold text-xs shadow-md hover:bg-red-700 transition-transform active:scale-95"
+                              title="Revert back to clean vector graphic"
+                            >
+                              Reset
+                            </button>
+                          )}
+                        </div>
 
                         {product.popularBadge && (
                           <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs">
                             {product.popularBadge}
+                          </div>
+                        )}
+
+                        {hasUploadedPhoto && (
+                          <div className="absolute bottom-2 left-2 bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-xs">
+                            ● Custom Photo Active
                           </div>
                         )}
                       </div>
@@ -779,6 +943,103 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
         {/* ========================================================================= */}
         {activeTab === 'photos' && (
           <div className="space-y-8 animate-in fade-in duration-200">
+            {/* Storefront Garments Live Image Synchronizer */}
+            <div className="bg-white dark:bg-[#1a202c] p-6 rounded-2xl border border-[#e5dfd3] dark:border-[#2d3748] shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 mb-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    <span>Live Customer Storefront Sync</span>
+                  </div>
+                  <h2 className="text-lg font-black tracking-tight font-heading text-neutral-900 dark:text-white">
+                    Storefront Items Image Manager ({products.length} Products)
+                  </h2>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    One of each garment item available to customers. Uploading a photo here instantly updates the customer storefront.
+                  </p>
+                </div>
+              </div>
+
+              {/* Grid of one of each item */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-2">
+                {products.map((p) => {
+                  const hasPhoto = !!p.uploadedImageUrl;
+                  return (
+                    <div
+                      key={p.id}
+                      className="bg-[#F9F8F3] dark:bg-[#12161c] border border-[#e5dfd3] dark:border-[#2d3748] rounded-xl p-3 flex flex-col justify-between space-y-3"
+                    >
+                      {/* Top info */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                            {p.category.replace('-', ' ')}
+                          </span>
+                          <h4 className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                            {p.name}
+                          </h4>
+                          <span className="text-[11px] font-black text-neutral-700 dark:text-neutral-300 font-mono">
+                            {p.currency} {p.price.toLocaleString()}
+                          </span>
+                        </div>
+
+                        {hasPhoto ? (
+                          <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full shrink-0">
+                            Photo Active
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold text-neutral-500 bg-neutral-200 dark:bg-neutral-800 px-2 py-0.5 rounded-full shrink-0">
+                            Graphic
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Image Preview */}
+                      <div className="aspect-16/10 rounded-lg bg-neutral-100 dark:bg-[#1a202c] border border-[#d8d0c3] dark:border-[#374151] overflow-hidden flex items-center justify-center relative">
+                        {hasPhoto ? (
+                          <img
+                            src={p.uploadedImageUrl}
+                            alt={p.name}
+                            className="w-full h-full object-cover object-center"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center text-center p-2 text-neutral-400">
+                            <Shirt className="w-6 h-6 opacity-60 mb-0.5" />
+                            <span className="text-[10px] font-semibold">Standard Vector Graphic</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Quick Upload / Actions */}
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => triggerUploadForProduct(p.id)}
+                          className="flex-1 py-1.5 px-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-900 font-bold text-[11px] flex items-center justify-center gap-1 transition-all shadow-xs"
+                          title="Upload or change photo for this item"
+                        >
+                          <Upload className="w-3 h-3" />
+                          <span>{hasPhoto ? 'Replace Photo' : 'Upload Photo'}</span>
+                        </button>
+
+                        {hasPhoto && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePhotoFromProduct(p.id)}
+                            className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 text-[11px] font-bold transition-colors"
+                            title="Reset to default vector preview"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* 1. Upload Dropzone */}
             <div className="bg-white dark:bg-[#1a202c] p-6 rounded-2xl border border-[#e5dfd3] dark:border-[#2d3748] shadow-xs space-y-5">
               <div>
@@ -786,7 +1047,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                   Muso Photo Studio & Garment Uploader
                 </h2>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  Upload photos of real stock, embroidery samples, or print mockups to attach to your products.
+                  Upload photos from your device. When uploading, photos will automatically match and update customer items with similar names (e.g. "half hoodie", "polo", "sweatshirt", "cap").
                 </p>
               </div>
 
@@ -809,7 +1070,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                   Click or tap to upload apparel photo from device
                 </h3>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  PNG, JPG, or WEBP. Upload real photography of hoodies, caps, or polo shirts!
+                  PNG, JPG, or WEBP. File names automatically sync to similar items on customer storefront!
                 </p>
               </div>
 
@@ -1009,8 +1270,8 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                           {asset.dateAdded} • {asset.fileSize}
                         </p>
 
-                        {/* Assign to product dropdown */}
-                        <div className="pt-1">
+                        {/* Assign to product dropdown & Auto-Sync */}
+                        <div className="pt-1 space-y-1">
                           <select
                             onChange={(e) => {
                               if (e.target.value) {
@@ -1030,6 +1291,16 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                               </option>
                             ))}
                           </select>
+
+                          <button
+                            type="button"
+                            onClick={() => handleApplyPhotoToSimilarProducts(asset.url, asset.name)}
+                            className="w-full text-[10px] font-bold py-1 px-1.5 rounded-md bg-[#EAE5DB] dark:bg-[#262e3b] text-neutral-800 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-700 transition-colors flex items-center justify-center gap-1"
+                            title="Apply to all items matching the name of this photo"
+                          >
+                            <Sparkles className="w-3 h-3 text-amber-500" />
+                            <span>Auto-Sync by Name</span>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1702,6 +1973,19 @@ Please confirm stock availability and M-Pesa payment details!`}
           </div>
         </div>
       )}
+
+      {/* Floating Quick Return to Customer Storefront Button */}
+      <aside aria-label="Quick Actions" className="fixed bottom-5 right-5 z-40">
+        <button
+          type="button"
+          onClick={onSwitchToCustomerView}
+          className="flex items-center gap-2.5 px-5 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 font-extrabold text-xs shadow-2xl hover:scale-105 active:scale-95 transition-all border border-white/20 dark:border-neutral-900/20"
+          title="Exit Owner Studio and return to Customer Storefront"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Exit Admin & Return to Store</span>
+        </button>
+      </aside>
     </div>
   );
 };

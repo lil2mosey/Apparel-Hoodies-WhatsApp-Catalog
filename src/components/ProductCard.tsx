@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, Eye, MessageSquare, Plus, Minus, Sparkles, Ruler } from 'lucide-react';
 import { Product, ColorOption, ApparelSize } from '../types';
 import { ProductVisual } from './ProductVisual';
@@ -21,6 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [selectedSize, setSelectedSize] = useState<ApparelSize>(product.sizes[0] || 'L');
   const [quantity, setQuantity] = useState<number>(1);
   const [imageError, setImageError] = useState(false);
+  const [isImgLoading, setIsImgLoading] = useState(true);
 
   const handleSendToWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -29,6 +30,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const photoSrc = product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
   const hasUploadedPhoto = Boolean(!imageError && photoSrc && photoSrc.trim().length > 0);
+
+  useEffect(() => {
+    setImageError(false);
+    setIsImgLoading(true);
+  }, [photoSrc]);
 
   return (
     <div
@@ -68,14 +74,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Visual: Uploaded Real Photo OR Dynamic Mockup */}
         {hasUploadedPhoto && photoSrc ? (
           <div className="relative flex items-center justify-center overflow-hidden rounded-2xl bg-neutral-100 dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] aspect-[4/3] group-hover:scale-[1.02] transition-transform duration-300">
+            {isImgLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 dark:bg-[#18202c] animate-pulse z-1">
+                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Loading Photo...</span>
+              </div>
+            )}
             <img
               src={photoSrc}
               alt={product.name}
-              className="w-full h-full object-cover object-center"
+              decoding="async"
+              loading="lazy"
+              className={`w-full h-full object-cover object-center transition-opacity duration-200 ${isImgLoading ? 'opacity-0' : 'opacity-100'}`}
               referrerPolicy="no-referrer"
-              onError={() => setImageError(true)}
+              onLoad={() => setIsImgLoading(false)}
+              onError={() => {
+                setImageError(true);
+                setIsImgLoading(false);
+              }}
             />
-            <div className="absolute bottom-2 left-2 bg-neutral-900/80 backdrop-blur-xs text-white text-[9px] font-black px-2 py-0.5 rounded-md">
+            <div className="absolute bottom-2 left-2 bg-neutral-900/80 backdrop-blur-xs text-white text-[9px] font-black px-2 py-0.5 rounded-md z-2">
               Real Photo
             </div>
           </div>

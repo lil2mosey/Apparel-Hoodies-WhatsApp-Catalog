@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Send, Ruler, Sparkles, Check, CheckCircle2, MessageSquare, Shirt, Maximize2, Minimize2, ZoomIn } from 'lucide-react';
 import { Product, ColorOption, ApparelSize, StoreContact } from '../types';
 import { ProductVisual } from './ProductVisual';
@@ -36,6 +36,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const totalPrice = product.price * quantity;
   const photoSrc = product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
   const hasUploadedPhoto = Boolean(!imageError && photoSrc && photoSrc.trim().length > 0);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [photoSrc]);
 
   const handleInstantWhatsApp = () => {
     onDirectOrder(

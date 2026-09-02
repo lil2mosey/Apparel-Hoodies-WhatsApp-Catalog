@@ -1,5 +1,11 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import {
+  initializeFirestore,
+  getFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from 'firebase/firestore';
 import firebaseConfigData from '../../firebase-applet-config.json';
 
 const firebaseConfig = {
@@ -13,9 +19,31 @@ const firebaseConfig = {
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-export const db: Firestore = 
-  firebaseConfigData.firestoreDatabaseId && firebaseConfigData.firestoreDatabaseId !== '(default)'
-    ? getFirestore(app, firebaseConfigData.firestoreDatabaseId)
-    : getFirestore(app);
+let firestoreInstance: Firestore;
+try {
+  const customDbId =
+    firebaseConfigData.firestoreDatabaseId && firebaseConfigData.firestoreDatabaseId !== '(default)'
+      ? firebaseConfigData.firestoreDatabaseId
+      : undefined;
+
+  firestoreInstance = initializeFirestore(
+    app,
+    {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    },
+    customDbId
+  );
+} catch {
+  // If already initialized or unsupported in current environment, fall back to getFirestore
+  firestoreInstance =
+    firebaseConfigData.firestoreDatabaseId && firebaseConfigData.firestoreDatabaseId !== '(default)'
+      ? getFirestore(app, firebaseConfigData.firestoreDatabaseId)
+      : getFirestore(app);
+}
+
+export const db: Firestore = firestoreInstance;
 
 export { app };
+

@@ -134,10 +134,10 @@ export async function deletePhotoAssetFromDB(id: string): Promise<void> {
 
 /**
  * Optimizes, compresses and resizes user-uploaded images client-side
- * Converts huge phone camera pictures (5MB - 15MB) to high-clarity web-optimized images (~100-250KB)
- * This ensures lightning-fast loading, immediate display, and zero storage quota errors.
+ * Converts huge phone camera pictures (5MB - 15MB) to high-clarity web-optimized images (~35-55KB)
+ * This ensures lightning-fast loading, immediate display, zero buffering, and zero Firestore quota errors.
  */
-export function compressAndResizeImage(fileOrDataUrl: File | string, maxDimension = 1200, quality = 0.88): Promise<string> {
+export function compressAndResizeImage(fileOrDataUrl: File | string, maxDimension = 720, quality = 0.76): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -178,7 +178,21 @@ export function compressAndResizeImage(fileOrDataUrl: File | string, maxDimensio
       ctx.drawImage(img, 0, 0, width, height);
 
       // Export as optimized JPEG
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+
+      // Safety check: if image is unusually detailed and still over 200KB, scale down slightly
+      if (compressedDataUrl.length > 260000) {
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = Math.round(width * 0.8);
+        scaledCanvas.height = Math.round(height * 0.8);
+        const sCtx = scaledCanvas.getContext('2d');
+        if (sCtx) {
+          sCtx.imageSmoothingEnabled = true;
+          sCtx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+          compressedDataUrl = scaledCanvas.toDataURL('image/jpeg', 0.70);
+        }
+      }
+
       resolve(compressedDataUrl);
     };
 

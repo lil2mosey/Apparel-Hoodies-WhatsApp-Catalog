@@ -249,6 +249,35 @@ export default function App() {
     return PRODUCTS;
   });
 
+  // Instantly hydrate cached catalog & photos from IndexedDB on startup (~5ms)
+  // This eliminates the 5-second network delay on page refresh and displays images immediately
+  useEffect(() => {
+    getPersistentData<Product[]>('products_catalog').then((dbProducts) => {
+      if (dbProducts && Array.isArray(dbProducts) && dbProducts.length > 0) {
+        setProducts((current) => {
+          const currentHasCustom = current.some((p) => p.uploadedImageUrl);
+          if (!currentHasCustom) {
+            return dbProducts;
+          }
+          return current;
+        });
+
+        dbProducts.forEach((p) => {
+          const photo = p.uploadedImageUrl || (p.image && (p.image.startsWith('data:image/') || p.image.startsWith('http') || p.image.startsWith('/')) ? p.image : undefined);
+          if (photo) {
+            saveCustomPhotoOverride(p.id, photo);
+          }
+        });
+      }
+    });
+
+    getPersistentData<PhotoAsset[]>('photo_assets').then((dbPhotos) => {
+      if (dbPhotos && Array.isArray(dbPhotos) && dbPhotos.length > 0) {
+        setPhotoAssets((current) => (current.length === 0 ? dbPhotos : current));
+      }
+    });
+  }, []);
+
   // Real-time Cloud Firestore subscription + local IndexedDB & localStorage caching
   useEffect(() => {
     // 1. Real-time Cloud Firestore products subscription
@@ -271,14 +300,6 @@ export default function App() {
               saveCustomPhotoOverride(p.id, photo);
               saveCustomPhotoOverride(p.image, photo);
             }
-          });
-        } else {
-          // If Firestore is brand new/empty, seed it with the default catalog
-          setProducts((currentProds) => {
-            saveAllProductsToFirestore(currentProds).catch((err) => {
-              console.warn('Initial Firestore catalog seed notice:', err);
-            });
-            return currentProds;
           });
         }
       },
@@ -339,6 +360,13 @@ export default function App() {
   const handleSaveProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
     savePersistentData('products_catalog', newProducts);
+    // Register photo overrides immediately
+    newProducts.forEach((p) => {
+      const photo = p.uploadedImageUrl || (p.image && (p.image.startsWith('data:image/') || p.image.startsWith('http') || p.image.startsWith('/')) ? p.image : undefined);
+      if (photo) {
+        saveCustomPhotoOverride(p.id, photo);
+      }
+    });
     // Persist to Cloud Firestore for permanent global access
     saveAllProductsToFirestore(newProducts).catch((err) => {
       console.error('Failed to sync products to Firestore:', err);

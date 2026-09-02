@@ -35,6 +35,7 @@ import { OwnerAuthModal, OwnerPinForm, OwnerSetupPasslockForm } from './componen
 import { Footer } from './components/Footer';
 import { MobileBottomBar } from './components/MobileBottomBar';
 import { MusoBrandLogo } from './components/MusoBrandLogo';
+import { savePersistentData, getPersistentData, savePhotoAssetToDB, getAllPhotoAssetsFromDB } from './utils/imageStorage';
 
 // Helper to check if current browser URL corresponds to /admin
 const checkIsAdminPath = () => {
@@ -188,30 +189,81 @@ export default function App() {
   // Owner Auth Dialog State
   const [isOwnerAuthModalOpen, setIsOwnerAuthModalOpen] = useState(false);
 
-  // Products state (persisted to localStorage)
+  // Products state (persisted to localStorage & IndexedDB with smart merge)
   const [products, setProducts] = useState<Product[]>(() => {
-    const CURRENT_VERSION = 'v3_grysons_ponchos_tracksuits';
     try {
-      const version = localStorage.getItem('muso_catalog_version');
       const saved = localStorage.getItem('muso_products_catalog');
-      if (saved && version === CURRENT_VERSION) {
+      if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Merge user-customized items/photos with latest catalog template to preserve user uploaded images
+          const userCustomMap = new Map<string, Product>();
+          parsed.forEach((p: Product) => userCustomMap.set(p.id, p));
+
+          return PRODUCTS.map((defaultProd) => {
+            const userProd = userCustomMap.get(defaultProd.id);
+            if (userProd) {
+              return {
+                ...defaultProd,
+                // Keep user's custom images, prices, stock status and customizations
+                uploadedImageUrl: userProd.uploadedImageUrl || defaultProd.uploadedImageUrl,
+                image: userProd.uploadedImageUrl || userProd.image || defaultProd.image,
+                price: typeof userProd.price === 'number' ? userProd.price : defaultProd.price,
+                inStock: userProd.inStock !== undefined ? userProd.inStock : defaultProd.inStock,
+                customizable: userProd.customizable !== undefined ? userProd.customizable : defaultProd.customizable,
+                colors: (userProd.colors && userProd.colors.length > 0) ? userProd.colors : defaultProd.colors,
+                sizes: (userProd.sizes && userProd.sizes.length > 0) ? userProd.sizes : defaultProd.sizes,
+              };
+            }
+            return defaultProd;
+          });
+        }
       }
-      // Set updated base catalog and current version
-      localStorage.setItem('muso_catalog_version', CURRENT_VERSION);
-      localStorage.setItem('muso_products_catalog', JSON.stringify(PRODUCTS));
     } catch {
       // ignore
     }
     return PRODUCTS;
   });
 
+  // Asynchronously load from IndexedDB on startup to recover any heavy photos
+  useEffect(() => {
+    getPersistentData<Product[]>('products_catalog').then((dbProducts) => {
+      if (dbProducts && Array.isArray(dbProducts) && dbProducts.length > 0) {
+        setProducts((prev) => {
+          const userMap = new Map<string, Product>();
+          dbProducts.forEach((p) => userMap.set(p.id, p));
+
+          return prev.map((p) => {
+            const dbItem = userMap.get(p.id);
+            if (dbItem?.uploadedImageUrl) {
+              return {
+                ...p,
+                uploadedImageUrl: dbItem.uploadedImageUrl,
+                image: dbItem.uploadedImageUrl,
+              };
+            }
+            return p;
+          });
+        });
+      }
+    });
+
+    getAllPhotoAssetsFromDB().then((assets) => {
+      if (assets && assets.length > 0) {
+        setPhotoAssets((prev) => {
+          const existingIds = new Set(prev.map((a) => a.id));
+          const newAssets = assets.filter((a) => !existingIds.has(a.id));
+          return [...prev, ...newAssets];
+        });
+      }
+    });
+  }, []);
+
   const handleSaveProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
+    savePersistentData('products_catalog', newProducts);
     try {
       localStorage.setItem('muso_products_catalog', JSON.stringify(newProducts));
-      localStorage.setItem('muso_catalog_version', 'v3_grysons_ponchos_tracksuits');
     } catch {
       // ignore
     }
@@ -236,6 +288,7 @@ export default function App() {
 
   const handleSaveContact = (contact: StoreContact) => {
     setStoreContact(contact);
+    savePersistentData('store_contact', contact);
     try {
       localStorage.setItem('muso_store_contact', JSON.stringify(contact));
     } catch {
@@ -243,7 +296,7 @@ export default function App() {
     }
   };
 
-  // Photo assets state (persisted to localStorage)
+  // Photo assets state (persisted to localStorage and IndexedDB)
   const [photoAssets, setPhotoAssets] = useState<PhotoAsset[]>(() => {
     try {
       const saved = localStorage.getItem('muso_photo_assets');
@@ -256,6 +309,10 @@ export default function App() {
 
   const handleSavePhotoAssets = (assets: PhotoAsset[]) => {
     setPhotoAssets(assets);
+    savePersistentData('photo_assets', assets);
+    assets.forEach((asset) => {
+      savePhotoAssetToDB(asset);
+    });
     try {
       localStorage.setItem('muso_photo_assets', JSON.stringify(assets));
     } catch {

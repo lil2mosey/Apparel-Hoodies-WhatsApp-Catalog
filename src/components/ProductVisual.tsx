@@ -20,9 +20,16 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
   size = 'md',
 }) => {
   const hex = color?.hex || '#171717';
-  const [customPhotoUrl, setCustomPhotoUrl] = useState<string | null>(() => getProductImageUrl(imageType));
+  // Check if imageType is already a full image URL or base64 data string
+  const isDirectImageUrl = imageType && (imageType.startsWith('data:image/') || imageType.startsWith('http://') || imageType.startsWith('https://') || imageType.startsWith('/'));
+  const [customPhotoUrl, setCustomPhotoUrl] = useState<string | null>(() => isDirectImageUrl ? imageType : getProductImageUrl(imageType));
 
   useEffect(() => {
+    if (isDirectImageUrl) {
+      setCustomPhotoUrl(imageType);
+      return;
+    }
+
     setCustomPhotoUrl(getProductImageUrl(imageType));
 
     const handleUpdate = () => {
@@ -33,7 +40,7 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
     return () => {
       window.removeEventListener('muso_images_updated', handleUpdate);
     };
-  }, [imageType]);
+  }, [imageType, isDirectImageUrl]);
 
   // Determine size classes
   const sizeMap = {

@@ -1,83 +1,114 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
   <defs>
-    <path id="musoFaviconArc" d="M 60 200 A 140 140 0 0 1 340 200" fill="none" />
-    <linearGradient id="musoGreenMain" x1="0%" y1="0%" x2="100%" y2="100%">
+    <path id="grysonFaviconArc" d="M 50 200 A 150 150 0 1 1 350 200 A 150 150 0 0 1 50 200" fill="none" />
+    
+    <linearGradient id="gGreenMain" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#10b981" />
-      <stop offset="100%" stop-color="#059669" />
+      <stop offset="50%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
     </linearGradient>
-    <linearGradient id="musoGreenDark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#047857" />
-      <stop offset="100%" stop-color="#065f46" />
-    </linearGradient>
-    <linearGradient id="musoGreenLight" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#34d399" />
+
+    <linearGradient id="gGreenLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6ee7b7" />
       <stop offset="100%" stop-color="#10b981" />
     </linearGradient>
-    <filter id="logoShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.25" />
+
+    <linearGradient id="gGreenDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#064e3b" />
+    </linearGradient>
+
+    <linearGradient id="gRedAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#b91c1c" />
+    </linearGradient>
+
+    <filter id="gShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.35" />
     </filter>
   </defs>
 
-  <!-- Background Sand/Beige Outer Base -->
-  <rect width="400" height="400" rx="80" fill="#EAE5DB" />
-  
-  <!-- Main Circular Dark Slate Badge -->
-  <circle cx="200" cy="200" r="165" fill="#1e2530" />
+  <!-- Clean Rounded Square Container Frame -->
+  <rect width="400" height="400" rx="88" fill="#FFFFFF" />
 
-  <!-- Outer Concentric Red Rings -->
-  <circle cx="200" cy="200" r="152" stroke="#d9383a" stroke-width="4.5" stroke-opacity="0.9" />
-  <circle cx="200" cy="200" r="138" stroke="#d9383a" stroke-width="2.5" />
-  <circle cx="200" cy="200" r="130" stroke="#b91c1c" stroke-width="1.5" stroke-opacity="0.6" />
+  <!-- Outer Dark Slate Ring -->
+  <circle cx="200" cy="200" r="184" fill="#242c38" />
 
-  <!-- Apparel Icons in Arc -->
-  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
-    <!-- 1. Hoodie -->
-    <g transform="translate(145, 95) scale(0.72)">
-      <path d="M12 28 C12 12, 36 12, 36 28 Z" fill="#ffffff" />
-      <path d="M6 28 L14 46 L20 46 L18 36 L30 36 L28 46 L34 46 L42 28 Z" fill="#ffffff" />
-      <path d="M18 36 L30 36 L28 44 L20 44 Z" fill="#1e2530" />
-    </g>
-    <!-- 2. Polo Shirt -->
-    <g transform="translate(182, 88) scale(0.75)">
-      <path d="M8 22 L18 20 L24 26 L30 20 L40 22 L36 30 L32 29 L32 46 L16 46 L16 29 L12 30 Z" fill="#ffffff" />
-      <path d="M18 20 L24 28 L21 21 Z" fill="#1e2530" />
-      <path d="M30 20 L24 28 L27 21 Z" fill="#1e2530" />
-      <line x1="24" y1="28" x2="24" y2="35" stroke="#1e2530" stroke-width="1.5" />
-    </g>
-    <!-- 3. Baseball Cap -->
-    <g transform="translate(220, 98) scale(0.72)">
-      <path d="M10 32 C10 18, 34 18, 38 32 Z" fill="#ffffff" />
-      <path d="M8 32 C16 35, 36 34, 44 31 C40 37, 24 38, 8 32 Z" fill="#ffffff" />
-      <circle cx="24" cy="18" r="2" fill="#ffffff" />
-    </g>
-    <!-- 4. Crewneck Sweatshirt -->
-    <g transform="translate(122, 140) scale(0.68)">
-      <path d="M8 20 L16 16 C20 20, 28 20, 32 16 L40 20 L35 34 L30 32 L30 46 L18 46 L18 32 L13 34 Z" fill="#ffffff" />
-    </g>
-    <!-- 5. Plain T-Shirt -->
-    <g transform="translate(252, 140) scale(0.68)">
-      <path d="M10 20 L16 16 C20 19, 28 19, 32 16 L38 20 L34 30 L30 29 L30 46 L18 46 L18 29 L14 30 Z" fill="#ffffff" />
-    </g>
-  </g>
+  <!-- Red Accent Trim Arcs -->
+  <path d="M 55 250 A 165 165 0 0 0 140 360" stroke="url(#gRedAccent)" stroke-width="7" stroke-linecap="round" fill="none" />
+  <path d="M 260 360 A 165 165 0 0 0 345 250" stroke="url(#gRedAccent)" stroke-width="7" stroke-linecap="round" fill="none" />
 
-  <!-- Folded 'M' Graphic Monogram (Center) -->
-  <g filter="url(#logoShadow)" transform="translate(0, 10)">
-    <path d="M 156 126 L 185 126 L 185 214 L 156 200 Z" fill="url(#musoGreenMain)" />
-    <path d="M 156 200 L 185 214 L 185 252 L 156 252 Z" fill="url(#musoGreenLight)" />
-    <path d="M 185 126 L 222 226 L 200 246 L 168 160 Z" fill="url(#musoGreenDark)" />
-    <path d="M 200 246 L 230 126 L 256 126 L 216 240 Z" fill="url(#musoGreenMain)" />
-    <path d="M 230 126 L 266 126 L 266 204 L 235 204 Z" fill="url(#musoGreenLight)" />
-    <path d="M 235 184 C 250 180, 266 180, 272 198 L 270 242 C 268 248, 255 252, 242 252 C 230 252, 224 246, 224 238 L 226 192 Z" fill="url(#musoGreenMain)" />
-    <path d="M 238 194 C 248 200, 256 210, 254 236 L 242 250 C 235 250, 232 244, 232 238 Z" fill="url(#musoGreenDark)" />
-    <path d="M 250 226 L 270 226 L 268 248 L 250 248 Z" fill="url(#musoGreenLight)" stroke="#047857" stroke-width="1.5" />
-    <line x1="255" y1="228" x2="255" y2="246" stroke="#065f46" stroke-width="1" />
-    <line x1="260" y1="228" x2="260" y2="246" stroke="#065f46" stroke-width="1" />
-    <line x1="265" y1="228" x2="265" y2="246" stroke="#065f46" stroke-width="1" />
-  </g>
+  <!-- Inner Pure White Circular Display Base -->
+  <circle cx="200" cy="200" r="136" fill="#FFFFFF" filter="url(#gShadow)" />
 
-  <!-- Bottom Brand Text -->
-  <text x="200" y="325" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">
-    MUSO APPAREL
+  <!-- Arc Text around the ring -->
+  <text fill="#FFFFFF" font-size="11" font-weight="800" letter-spacing="1" font-family="'Plus Jakarta Sans', system-ui, sans-serif">
+    <textPath href="#grysonFaviconArc" startOffset="50%" text-anchor="middle">
+      HOODIES • TRACKSUITS • PONCHOS • POLOS • SWEATSHIRTS • TEES
+    </textPath>
   </text>
-  <circle cx="200" cy="342" r="3" fill="#10b981" />
+
+  <!-- 7 Clothing Silhouette Icons in Inner Ring -->
+  <g fill="#242c38" stroke="#242c38" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 1. Poncho (Top Left) -->
+    <g transform="translate(108, 90) scale(0.62)">
+      <path d="M 25 10 L 48 35 L 2 35 Z" fill="#242c38" />
+      <path d="M 20 10 L 25 18 L 30 10" stroke="#ffffff" stroke-width="2" fill="none" />
+      <line x1="6" y1="35" x2="6" y2="40" stroke="#242c38" stroke-width="2" />
+      <line x1="16" y1="35" x2="16" y2="40" stroke="#242c38" stroke-width="2" />
+      <line x1="26" y1="35" x2="26" y2="40" stroke="#242c38" stroke-width="2" />
+      <line x1="36" y1="35" x2="36" y2="40" stroke="#242c38" stroke-width="2" />
+      <line x1="44" y1="35" x2="44" y2="40" stroke="#242c38" stroke-width="2" />
+    </g>
+
+    <!-- 2. Tracksuit (Top Right) -->
+    <g transform="translate(254, 88) scale(0.62)">
+      <path d="M 8 16 L 16 12 L 24 12 L 32 16 L 38 24 L 34 26 L 30 22 L 30 36 L 10 36 L 10 22 L 6 26 L 2 24 Z" fill="#242c38" />
+      <line x1="20" y1="12" x2="20" y2="36" stroke="#ffffff" stroke-width="1.5" />
+      <path d="M 12 39 L 28 39 L 26 54 L 22 54 L 20 44 L 18 54 L 14 54 Z" fill="#242c38" />
+    </g>
+
+    <!-- 3. Hoodie (Mid Left) -->
+    <g transform="translate(85, 175) scale(0.6)">
+      <path d="M 12 24 C 12 10, 36 10, 36 24 Z" fill="#242c38" />
+      <path d="M 6 24 L 14 42 L 20 42 L 18 32 L 30 32 L 28 42 L 34 42 L 42 24 Z" fill="#242c38" />
+    </g>
+
+    <!-- 4. Plain Tee (Mid Right) -->
+    <g transform="translate(278, 175) scale(0.6)">
+      <path d="M 10 18 L 16 14 C 20 18, 28 18, 32 14 L 38 18 L 34 28 L 30 27 L 30 44 L 18 44 L 18 27 L 14 28 Z" fill="#242c38" />
+    </g>
+
+    <!-- 5. Polo (Bottom Left) -->
+    <g transform="translate(108, 255) scale(0.6)">
+      <path d="M 8 20 L 18 18 L 24 24 L 30 18 L 40 20 L 36 28 L 32 27 L 32 44 L 16 44 L 16 27 L 12 28 Z" fill="#242c38" />
+    </g>
+
+    <!-- 6. Sweatshirt (Bottom Mid) -->
+    <g transform="translate(182, 270) scale(0.6)">
+      <path d="M 8 18 L 16 14 C 20 18, 28 18, 32 14 L 40 18 L 35 32 L 30 30 L 30 44 L 18 44 L 18 30 L 13 32 Z" fill="#242c38" />
+    </g>
+
+    <!-- 7. Cap (Bottom Right) -->
+    <g transform="translate(254, 255) scale(0.6)">
+      <path d="M 10 30 C 10 16, 34 16, 38 30 Z" fill="#242c38" />
+      <path d="M 8 30 C 16 33, 36 32, 44 29 C 40 35, 24 36, 8 30 Z" fill="#242c38" />
+    </g>
+  </g>
+
+  <!-- Central 3D Emerald 'G' Monogram -->
+  <g filter="url(#gShadow)" transform="translate(200, 195)">
+    <path
+      d="M 18 -58 C 4 -58, -12 -54, -26 -44 C -44 -30, -55 -8, -55 16 C -55 42, -42 64, -20 74 C -4 82, 16 82, 32 74 C 44 68, 52 56, 52 40 L 52 10 L 0 10 L 0 28 L 30 28 L 30 38 C 30 46, 22 56, 12 60 C -2 64, -18 64, -28 52 C -38 40, -40 24, -40 12 C -40 -8, -32 -26, -18 -36 C -8 -44, 4 -46, 16 -46 C 26 -46, 36 -42, 44 -34 L 54 -46 C 44 -54, 32 -58, 18 -58 Z"
+      fill="url(#gGreenMain)"
+    />
+    <path
+      d="M 18 -58 C 4 -58, -12 -54, -26 -44 C -44 -30, -55 -8, -55 16 C -55 24, -50 20, -45 10 C -45 -12, -34 -30, -18 -38 C -6 -44, 6 -46, 16 -46 C 28 -46, 38 -40, 46 -32 L 54 -46 C 44 -54, 32 -58, 18 -58 Z"
+      fill="url(#gGreenLight)"
+    />
+    <path d="M 52 10 L 0 10 L 0 28 L 30 28 L 52 28 Z" fill="url(#gGreenDark)" />
+    <path d="M 0 10 L 30 28 L 0 28 Z" fill="url(#gGreenMain)" />
+    <path d="M 30 28 L 52 28 L 52 40 C 52 56, 44 68, 32 74 L 24 64 C 34 58, 36 50, 36 40 L 30 40 Z" fill="url(#gGreenLight)" />
+    <path d="M -20 74 C -4 82, 16 82, 32 74 L 24 64 C 12 70, -2 70, -14 62 Z" fill="url(#gGreenDark)" />
+  </g>
 </svg>

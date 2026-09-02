@@ -131,3 +131,77 @@ export async function deletePhotoAssetFromDB(id: string): Promise<void> {
     // ignore
   }
 }
+
+/**
+ * Optimizes, compresses and resizes user-uploaded images client-side
+ * Converts huge phone camera pictures (5MB - 15MB) to high-clarity web-optimized images (~100-250KB)
+ * This ensures lightning-fast loading, immediate display, and zero storage quota errors.
+ */
+export function compressAndResizeImage(fileOrDataUrl: File | string, maxDimension = 1200, quality = 0.88): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        // Fallback to original
+        if (typeof fileOrDataUrl === 'string') {
+          resolve(fileOrDataUrl);
+        } else {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(fileOrDataUrl);
+        }
+        return;
+      }
+
+      // Smooth rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Export as optimized JPEG
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressedDataUrl);
+    };
+
+    img.onerror = () => {
+      // Fallback
+      if (typeof fileOrDataUrl === 'string') {
+        resolve(fileOrDataUrl);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(fileOrDataUrl);
+      }
+    };
+
+    if (typeof fileOrDataUrl === 'string') {
+      img.src = fileOrDataUrl;
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(fileOrDataUrl);
+    }
+  });
+}
+

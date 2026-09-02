@@ -20,13 +20,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [selectedColor, setSelectedColor] = useState<ColorOption>(product.colors[0] || { name: 'Black', hex: '#171717' });
   const [selectedSize, setSelectedSize] = useState<ApparelSize>(product.sizes[0] || 'L');
   const [quantity, setQuantity] = useState<number>(1);
+  const [imageError, setImageError] = useState(false);
 
   const handleSendToWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
     onDirectOrder(product, selectedColor, selectedSize, quantity);
   };
 
-  const hasUploadedPhoto = !!product.uploadedImageUrl;
+  const photoSrc = product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
+  const hasUploadedPhoto = Boolean(!imageError && photoSrc && photoSrc.trim().length > 0);
 
   return (
     <div
@@ -64,13 +66,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </button>
 
         {/* Visual: Uploaded Real Photo OR Dynamic Mockup */}
-        {hasUploadedPhoto ? (
+        {hasUploadedPhoto && photoSrc ? (
           <div className="relative flex items-center justify-center overflow-hidden rounded-2xl bg-neutral-100 dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] aspect-[4/3] group-hover:scale-[1.02] transition-transform duration-300">
             <img
-              src={product.uploadedImageUrl}
+              src={photoSrc}
               alt={product.name}
               className="w-full h-full object-cover object-center"
               referrerPolicy="no-referrer"
+              onError={() => setImageError(true)}
             />
             <div className="absolute bottom-2 left-2 bg-neutral-900/80 backdrop-blur-xs text-white text-[9px] font-black px-2 py-0.5 rounded-md">
               Real Photo

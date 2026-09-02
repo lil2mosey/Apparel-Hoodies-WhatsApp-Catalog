@@ -196,16 +196,15 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Merge user-customized items/photos with latest catalog template to preserve user uploaded images
           const userCustomMap = new Map<string, Product>();
           parsed.forEach((p: Product) => userCustomMap.set(p.id, p));
 
-          return PRODUCTS.map((defaultProd) => {
+          const mergedDefaults = PRODUCTS.map((defaultProd) => {
             const userProd = userCustomMap.get(defaultProd.id);
             if (userProd) {
               return {
                 ...defaultProd,
-                // Keep user's custom images, prices, stock status and customizations
+                ...userProd,
                 uploadedImageUrl: userProd.uploadedImageUrl || defaultProd.uploadedImageUrl,
                 image: userProd.uploadedImageUrl || userProd.image || defaultProd.image,
                 price: typeof userProd.price === 'number' ? userProd.price : defaultProd.price,
@@ -217,6 +216,11 @@ export default function App() {
             }
             return defaultProd;
           });
+
+          const defaultIds = new Set(PRODUCTS.map((p) => p.id));
+          const userCreatedItems = parsed.filter((p: Product) => !defaultIds.has(p.id));
+
+          return [...mergedDefaults, ...userCreatedItems];
         }
       }
     } catch {
@@ -233,17 +237,23 @@ export default function App() {
           const userMap = new Map<string, Product>();
           dbProducts.forEach((p) => userMap.set(p.id, p));
 
-          return prev.map((p) => {
+          const updated = prev.map((p) => {
             const dbItem = userMap.get(p.id);
-            if (dbItem?.uploadedImageUrl) {
+            if (dbItem) {
               return {
                 ...p,
-                uploadedImageUrl: dbItem.uploadedImageUrl,
-                image: dbItem.uploadedImageUrl,
+                ...dbItem,
+                uploadedImageUrl: dbItem.uploadedImageUrl || p.uploadedImageUrl,
+                image: dbItem.uploadedImageUrl || dbItem.image || p.image,
               };
             }
             return p;
           });
+
+          const prevIds = new Set(prev.map((p) => p.id));
+          const newCustomProducts = dbProducts.filter((p) => !prevIds.has(p.id));
+
+          return [...updated, ...newCustomProducts];
         });
       }
     });

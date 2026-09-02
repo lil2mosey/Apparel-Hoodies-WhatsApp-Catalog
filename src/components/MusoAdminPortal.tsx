@@ -44,6 +44,8 @@ import {
 } from '../types';
 import { MusoBrandLogo } from './MusoBrandLogo';
 import { COMMON_COLORS, CATEGORIES } from '../data/products';
+import { compressAndResizeImage } from '../utils/imageStorage';
+import { saveCustomPhotoOverride } from '../assets/images';
 
 interface MusoAdminPortalProps {
   products: Product[];
@@ -255,8 +257,8 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     });
   };
 
-  // Handle Photo File Upload with Auto-Matching
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, targetProductId?: string) => {
+  // Handle Photo File Upload with Auto-Matching and Client-Side Optimization
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, targetProductId?: string) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -268,10 +270,10 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
     const effectiveTargetId = targetProductId || uploadTargetProductId;
     setIsUploadingPhoto(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (!dataUrl) return;
+
+    try {
+      // Compress and resize client-side to ensure instant performance & zero storage quota errors
+      const dataUrl = await compressAndResizeImage(file, 1200, 0.88);
 
       const newAsset: PhotoAsset = {
         id: `photo-${Date.now()}`,
@@ -279,7 +281,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
         url: dataUrl,
         category: uploadCategory,
         dateAdded: new Date().toLocaleDateString(),
-        fileSize: `${(file.size / 1024).toFixed(1)} KB`,
+        fileSize: `${Math.round((dataUrl.length * 0.75) / 1024)} KB (Web Ready)`,
         assignedProductId: effectiveTargetId
       };
 
@@ -308,6 +310,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
           }
           return p;
         });
+        saveCustomPhotoOverride(effectiveTargetId, dataUrl);
         onSaveProducts(updated);
         setUploadSuccessNotification(`Photo updated for "${targetProduct?.name || 'Item'}" and is now active on customer store!`);
         setTimeout(() => setUploadSuccessNotification(null), 4500);
@@ -318,6 +321,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
           const matchedIds = new Set(matched.map(m => m.id));
           const updated = products.map(p => {
             if (matchedIds.has(p.id)) {
+              saveCustomPhotoOverride(p.id, dataUrl);
               return {
                 ...p,
                 uploadedImageUrl: dataUrl,
@@ -331,17 +335,17 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
           setUploadSuccessNotification(`Photo matched by filename and updated for: ${matchedNames} on customer store!`);
           setTimeout(() => setUploadSuccessNotification(null), 5000);
         } else {
-          setUploadSuccessNotification(`Photo "${file.name}" saved to Photo Library. Click 'Assign to Product' to attach to customer items.`);
+          setUploadSuccessNotification(`Photo "${file.name}" saved to Photo Library. Select "Assign to Product" below to show it on the customer store.`);
           setTimeout(() => setUploadSuccessNotification(null), 4000);
         }
       }
-
+    } catch (err) {
+      console.error('Photo optimization error:', err);
+    } finally {
       setIsUploadingPhoto(false);
       setUploadTargetProductId(undefined);
       if (e.target) e.target.value = '';
-    };
-
-    reader.readAsDataURL(file);
+    }
   };
 
   // Trigger file upload for a specific product
@@ -362,6 +366,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       }
       return p;
     });
+    saveCustomPhotoOverride(productId, '');
     onSaveProducts(updated);
     setUploadSuccessNotification('Photo removed. Item reverted to high-precision graphic on customer store.');
     setTimeout(() => setUploadSuccessNotification(null), 3000);
@@ -406,6 +411,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       }
       return p;
     });
+    saveCustomPhotoOverride(productId, photoUrl);
     onSaveProducts(updated);
     setUploadSuccessNotification(`Photo assigned to "${targetProduct?.name || 'Item'}" and updated on customer storefront!`);
     setTimeout(() => setUploadSuccessNotification(null), 4000);
@@ -421,6 +427,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
     const matchedIds = new Set(matched.map(m => m.id));
     const updated = products.map(p => {
       if (matchedIds.has(p.id)) {
+        saveCustomPhotoOverride(p.id, photoUrl);
         return {
           ...p,
           uploadedImageUrl: photoUrl,
@@ -778,7 +785,8 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
             {/* Product Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {adminFilteredProducts.map((product) => {
-                const hasUploadedPhoto = !!product.uploadedImageUrl;
+                const photoSrc = product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
+                const hasUploadedPhoto = Boolean(photoSrc && photoSrc.trim().length > 0);
                 return (
                   <div
                     key={product.id}
@@ -820,9 +828,9 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
                       {/* Photo Thumbnail Stage with 1-Click Uploader */}
                       <div className="relative group aspect-16/9 rounded-xl bg-neutral-100 dark:bg-[#12161c] border border-[#d8d0c3] dark:border-[#2d3748] overflow-hidden flex items-center justify-center">
-                        {hasUploadedPhoto ? (
+                        {hasUploadedPhoto && photoSrc ? (
                           <img
-                            src={product.uploadedImageUrl}
+                            src={photoSrc}
                             alt={product.name}
                             className="w-full h-full object-cover object-center"
                             referrerPolicy="no-referrer"
@@ -965,7 +973,8 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
               {/* Grid of one of each item */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-2">
                 {products.map((p) => {
-                  const hasPhoto = !!p.uploadedImageUrl;
+                  const photoSrc = p.uploadedImageUrl || (p.image && (p.image.startsWith('data:image/') || p.image.startsWith('http://') || p.image.startsWith('https://') || p.image.startsWith('/')) ? p.image : undefined);
+                  const hasPhoto = Boolean(photoSrc && photoSrc.trim().length > 0);
                   return (
                     <div
                       key={p.id}
@@ -998,9 +1007,9 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
                       {/* Image Preview */}
                       <div className="aspect-16/10 rounded-lg bg-neutral-100 dark:bg-[#1a202c] border border-[#d8d0c3] dark:border-[#374151] overflow-hidden flex items-center justify-center relative">
-                        {hasPhoto ? (
+                        {hasPhoto && photoSrc ? (
                           <img
-                            src={p.uploadedImageUrl}
+                            src={photoSrc}
                             alt={p.name}
                             className="w-full h-full object-cover object-center"
                             referrerPolicy="no-referrer"

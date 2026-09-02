@@ -31,9 +31,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [enableCustomization, setEnableCustomization] = useState(false);
   const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain'>('cover');
   const [isZoomed, setIsZoomed] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const totalPrice = product.price * quantity;
-  const hasUploadedPhoto = !!product.uploadedImageUrl;
+  const photoSrc = product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
+  const hasUploadedPhoto = Boolean(!imageError && photoSrc && photoSrc.trim().length > 0);
 
   const handleInstantWhatsApp = () => {
     onDirectOrder(
@@ -78,10 +80,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             {/* Left: Product Media (Uploaded Photo or Mockup) */}
             <div className="lg:col-span-6 flex flex-col items-center space-y-4">
               <div className="w-full flex items-center justify-center">
-                {hasUploadedPhoto ? (
+                {hasUploadedPhoto && photoSrc ? (
                   <div className="w-full aspect-[4/5] max-h-[480px] rounded-2xl bg-neutral-950/5 dark:bg-neutral-950/40 border border-[#d8d0c3] dark:border-[#2d3748] overflow-hidden flex items-center justify-center relative shadow-sm group">
                     <img
-                      src={product.uploadedImageUrl}
+                      src={photoSrc}
                       alt={product.name}
                       className={`w-full h-full transition-all duration-300 ${
                         imageFitMode === 'cover'
@@ -89,6 +91,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                           : 'object-contain p-2'
                       }`}
                       referrerPolicy="no-referrer"
+                      onError={() => setImageError(true)}
                     />
 
                     {/* View Controls: Fit / Fill Toggle */}

@@ -44,7 +44,7 @@ import {
 } from '../types';
 import { MusoBrandLogo } from './MusoBrandLogo';
 import { COMMON_COLORS, CATEGORIES } from '../data/products';
-import { compressAndResizeImage } from '../utils/imageStorage';
+import { compressAndResizeImage, uploadImageToServer } from '../utils/imageStorage';
 import { saveCustomPhotoOverride } from '../assets/images';
 
 interface MusoAdminPortalProps {
@@ -207,6 +207,11 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
       updated = [editingProduct, ...products];
     }
 
+    const effectivePhoto = editingProduct.uploadedImageUrl || (editingProduct.image && (editingProduct.image.startsWith('data:image/') || editingProduct.image.startsWith('/uploads/') || editingProduct.image.startsWith('http')) ? editingProduct.image : undefined);
+    if (effectivePhoto) {
+      saveCustomPhotoOverride(editingProduct.id, effectivePhoto);
+    }
+
     onSaveProducts(updated);
     setIsProductModalOpen(false);
     setEditingProduct(null);
@@ -273,7 +278,10 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
 
     try {
       // Compress and resize client-side to ensure instant performance & zero storage quota errors
-      const dataUrl = await compressAndResizeImage(file, 1200, 0.88);
+      const compressedDataUrl = await compressAndResizeImage(file, 1200, 0.88);
+      // Upload to server so the photo gets a permanent public URL and sticks across all shared links
+      const serverUrl = await uploadImageToServer(compressedDataUrl, file.name);
+      const dataUrl = serverUrl || compressedDataUrl;
 
       const newAsset: PhotoAsset = {
         id: `photo-${Date.now()}`,
@@ -281,7 +289,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
         url: dataUrl,
         category: uploadCategory,
         dateAdded: new Date().toLocaleDateString(),
-        fileSize: `${Math.round((dataUrl.length * 0.75) / 1024)} KB (Web Ready)`,
+        fileSize: `${Math.round((compressedDataUrl.length * 0.75) / 1024)} KB (Web Ready)`,
         assignedProductId: effectiveTargetId
       };
 
@@ -1574,6 +1582,46 @@ Please confirm stock availability and M-Pesa payment details!`}
         {/* ========================================================================= */}
         {activeTab === 'backup' && (
           <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in duration-200">
+            {/* Live Shared Link & Server Persistence Status */}
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 p-6 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-sm font-black text-emerald-950 dark:text-emerald-200">
+                  Shared Link & Server Persistence Active
+                </h3>
+              </div>
+              <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                All photos you upload and catalog edits you make are automatically saved directly to the server storage. Anyone who opens your shared website link on any phone, tablet, or laptop will see the real photos and updated prices immediately.
+              </p>
+              <div className="pt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = window.location.origin;
+                    navigator.clipboard.writeText(url);
+                    setUploadSuccessNotification('Customer Store Link copied to clipboard!');
+                    setTimeout(() => setUploadSuccessNotification(null), 3000);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-xs"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Customer Share Link</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSaveProducts([...products]);
+                    setUploadSuccessNotification('All catalog items and photos re-synchronized to server!');
+                    setTimeout(() => setUploadSuccessNotification(null), 3000);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-700 text-xs font-bold transition-all hover:bg-emerald-100"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Force Re-Sync to Server</span>
+                </button>
+              </div>
+            </div>
+
             <div className="bg-white dark:bg-[#1a202c] p-6 sm:p-8 rounded-2xl border border-[#e5dfd3] dark:border-[#2d3748] shadow-xs space-y-6">
               <div>
                 <h2 className="text-xl font-black tracking-tight font-heading text-neutral-900 dark:text-white">

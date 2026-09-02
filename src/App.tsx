@@ -35,7 +35,18 @@ import { OwnerAuthModal, OwnerPinForm, OwnerSetupPasslockForm } from './componen
 import { Footer } from './components/Footer';
 import { MobileBottomBar } from './components/MobileBottomBar';
 import { MusoBrandLogo } from './components/MusoBrandLogo';
-import { savePersistentData, getPersistentData, savePhotoAssetToDB, getAllPhotoAssetsFromDB } from './utils/imageStorage';
+import { 
+  savePersistentData, 
+  getPersistentData, 
+  savePhotoAssetToDB, 
+  getAllPhotoAssetsFromDB,
+  syncProductsToServer,
+  fetchProductsFromServer,
+  syncPhotosToServer,
+  fetchPhotosFromServer,
+  syncContactToServer,
+  fetchContactFromServer
+} from './utils/imageStorage';
 
 // Helper to check if current browser URL corresponds to /admin
 const checkIsAdminPath = () => {
@@ -229,42 +240,82 @@ export default function App() {
     return PRODUCTS;
   });
 
-  // Asynchronously load from IndexedDB on startup to recover any heavy photos
+  // Asynchronously load from Server API + IndexedDB on startup
   useEffect(() => {
-    getPersistentData<Product[]>('products_catalog').then((dbProducts) => {
-      if (dbProducts && Array.isArray(dbProducts) && dbProducts.length > 0) {
-        setProducts((prev) => {
-          const userMap = new Map<string, Product>();
-          dbProducts.forEach((p) => userMap.set(p.id, p));
+    // 1. Fetch from Server (so shared links & new devices get all photos and changes)
+    fetchProductsFromServer().then((serverProducts) => {
+      if (serverProducts && Array.isArray(serverProducts) && serverProducts.length > 0) {
+        setProducts(serverProducts);
+        savePersistentData('products_catalog', serverProducts);
+        try {
+          localStorage.setItem('muso_products_catalog', JSON.stringify(serverProducts));
+        } catch {
+          // ignore
+        }
+      } else {
+        // Fallback to local IndexedDB if server is empty
+        getPersistentData<Product[]>('products_catalog').then((dbProducts) => {
+          if (dbProducts && Array.isArray(dbProducts) && dbProducts.length > 0) {
+            setProducts((prev) => {
+              const userMap = new Map<string, Product>();
+              dbProducts.forEach((p) => userMap.set(p.id, p));
 
-          const updated = prev.map((p) => {
-            const dbItem = userMap.get(p.id);
-            if (dbItem) {
-              return {
-                ...p,
-                ...dbItem,
-                uploadedImageUrl: dbItem.uploadedImageUrl || p.uploadedImageUrl,
-                image: dbItem.uploadedImageUrl || dbItem.image || p.image,
-              };
-            }
-            return p;
-          });
+              const updated = prev.map((p) => {
+                const dbItem = userMap.get(p.id);
+                if (dbItem) {
+                  return {
+                    ...p,
+                    ...dbItem,
+                    uploadedImageUrl: dbItem.uploadedImageUrl || p.uploadedImageUrl,
+                    image: dbItem.uploadedImageUrl || dbItem.image || p.image,
+                  };
+                }
+                return p;
+              });
 
-          const prevIds = new Set(prev.map((p) => p.id));
-          const newCustomProducts = dbProducts.filter((p) => !prevIds.has(p.id));
+              const prevIds = new Set(prev.map((p) => p.id));
+              const newCustomProducts = dbProducts.filter((p) => !prevIds.has(p.id));
 
-          return [...updated, ...newCustomProducts];
+              return [...updated, ...newCustomProducts];
+            });
+          }
         });
       }
     });
 
-    getAllPhotoAssetsFromDB().then((assets) => {
-      if (assets && assets.length > 0) {
-        setPhotoAssets((prev) => {
-          const existingIds = new Set(prev.map((a) => a.id));
-          const newAssets = assets.filter((a) => !existingIds.has(a.id));
-          return [...prev, ...newAssets];
+    // 2. Fetch photo assets from server
+    fetchPhotosFromServer().then((serverPhotos) => {
+      if (serverPhotos && Array.isArray(serverPhotos) && serverPhotos.length > 0) {
+        setPhotoAssets(serverPhotos);
+        savePersistentData('photo_assets', serverPhotos);
+        try {
+          localStorage.setItem('muso_photo_assets', JSON.stringify(serverPhotos));
+        } catch {
+          // ignore
+        }
+      } else {
+        getAllPhotoAssetsFromDB().then((assets) => {
+          if (assets && assets.length > 0) {
+            setPhotoAssets((prev) => {
+              const existingIds = new Set(prev.map((a) => a.id));
+              const newAssets = assets.filter((a) => !existingIds.has(a.id));
+              return [...prev, ...newAssets];
+            });
+          }
         });
+      }
+    });
+
+    // 3. Fetch store contact from server
+    fetchContactFromServer().then((serverContact) => {
+      if (serverContact && serverContact.phone) {
+        setStoreContact(serverContact);
+        savePersistentData('store_contact', serverContact);
+        try {
+          localStorage.setItem('muso_store_contact', JSON.stringify(serverContact));
+        } catch {
+          // ignore
+        }
       }
     });
   }, []);
@@ -272,6 +323,7 @@ export default function App() {
   const handleSaveProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
     savePersistentData('products_catalog', newProducts);
+    syncProductsToServer(newProducts);
     try {
       localStorage.setItem('muso_products_catalog', JSON.stringify(newProducts));
     } catch {
@@ -299,6 +351,7 @@ export default function App() {
   const handleSaveContact = (contact: StoreContact) => {
     setStoreContact(contact);
     savePersistentData('store_contact', contact);
+    syncContactToServer(contact);
     try {
       localStorage.setItem('muso_store_contact', JSON.stringify(contact));
     } catch {
@@ -320,6 +373,7 @@ export default function App() {
   const handleSavePhotoAssets = (assets: PhotoAsset[]) => {
     setPhotoAssets(assets);
     savePersistentData('photo_assets', assets);
+    syncPhotosToServer(assets);
     assets.forEach((asset) => {
       savePhotoAssetToDB(asset);
     });

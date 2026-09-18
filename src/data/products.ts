@@ -39,6 +39,7 @@ export const PRODUCTS: Product[] = [
     price: 2000,
     currency: 'KSh',
     image: 'hoodie-half',
+    uploadedImageUrl: '/images/half-hoodie.jpg',
     featured: true,
     popularBadge: 'Viral Style',
     colors: [
@@ -72,6 +73,7 @@ export const PRODUCTS: Product[] = [
     price: 2300,
     currency: 'KSh',
     image: 'hoodie-pullover',
+    uploadedImageUrl: '/images/hoodies.jpg',
     featured: true,
     popularBadge: 'Top Seller',
     colors: [
@@ -107,6 +109,7 @@ export const PRODUCTS: Product[] = [
     price: 2300,
     currency: 'KSh',
     image: 'hoodie-zip',
+    uploadedImageUrl: '/images/zip-hoodie.jpg',
     featured: true,
     popularBadge: 'Popular',
     colors: [
@@ -136,6 +139,7 @@ export const PRODUCTS: Product[] = [
     price: 1500,
     currency: 'KSh',
     image: 'sweatshirt',
+    uploadedImageUrl: '/images/sweatshirt.jpg',
     featured: true,
     popularBadge: 'Trending',
     colors: [
@@ -166,6 +170,7 @@ export const PRODUCTS: Product[] = [
     price: 1000,
     currency: 'KSh',
     image: 'polo',
+    uploadedImageUrl: '/images/polo-shirts.webp',
     featured: true,
     popularBadge: 'Best Value',
     colors: [
@@ -200,6 +205,7 @@ export const PRODUCTS: Product[] = [
     price: 600,
     currency: 'KSh',
     image: 'tshirt',
+    uploadedImageUrl: '/images/plain-tshirt.webp',
     featured: false,
     popularBadge: 'Essential',
     colors: [
@@ -233,6 +239,7 @@ export const PRODUCTS: Product[] = [
     price: 350,
     currency: 'KSh',
     image: 'cap',
+    uploadedImageUrl: '/images/caps.jpg',
     featured: true,
     popularBadge: 'Hot Item',
     colors: [
@@ -264,6 +271,7 @@ export const PRODUCTS: Product[] = [
     price: 550,
     currency: 'KSh',
     image: 'vest-reflective',
+    uploadedImageUrl: '/images/reflective-vest.webp',
     featured: false,
     colors: [
       COMMON_COLORS.brightOrange,
@@ -290,6 +298,7 @@ export const PRODUCTS: Product[] = [
     price: 2200,
     currency: 'KSh',
     image: 'vest-puffer',
+    uploadedImageUrl: '/images/puffer-vest.jpg',
     featured: false,
     popularBadge: 'Premium',
     colors: [
@@ -317,6 +326,7 @@ export const PRODUCTS: Product[] = [
     price: 2500,
     currency: 'KSh',
     image: 'poncho-fleece',
+    uploadedImageUrl: '/images/poncho.webp',
     featured: true,
     popularBadge: 'New Arrival',
     colors: [
@@ -349,6 +359,7 @@ export const PRODUCTS: Product[] = [
     price: 3800,
     currency: 'KSh',
     image: 'tracksuit-set',
+    uploadedImageUrl: '/images/tracksuit.webp',
     featured: true,
     popularBadge: 'Complete Set',
     colors: [

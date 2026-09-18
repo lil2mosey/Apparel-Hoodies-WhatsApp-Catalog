@@ -178,12 +178,42 @@ export function saveCustomPhotoOverride(imageKey: string, url: string) {
   }
 }
 
+const DEFAULT_IMAGE_MAP: Record<string, string> = {
+  'hoodie-half': '/images/half-hoodie.jpg',
+  'half-hoodie': '/images/half-hoodie.jpg',
+  'hoodie-pullover': '/images/hoodies.jpg',
+  'pullover-hoodie': '/images/hoodies.jpg',
+  'hoodie-zip': '/images/zip-hoodie.jpg',
+  'zip-hoodie': '/images/zip-hoodie.jpg',
+  'sweatshirt': '/images/sweatshirt.jpg',
+  'crewneck-sweatshirt': '/images/sweatshirt.jpg',
+  'polo': '/images/polo-shirts.webp',
+  'pique-polo-shirt': '/images/polo-shirts.webp',
+  'polo-pique': '/images/polo-shirts.webp',
+  'tshirt': '/images/plain-tshirt.webp',
+  'plain-tshirt': '/images/plain-tshirt.webp',
+  'tshirt-crewneck': '/images/plain-tshirt.webp',
+  'cap': '/images/caps.jpg',
+  'cap-cotton': '/images/caps.jpg',
+  'baseball-cap': '/images/caps.jpg',
+  'vest-reflective': '/images/reflective-vest.webp',
+  'safety-reflective-vest': '/images/reflective-vest.webp',
+  'vest-puffer': '/images/puffer-vest.jpg',
+  'quilted-puffer-gilet': '/images/puffer-vest.jpg',
+  'poncho-fleece': '/images/poncho.webp',
+  'fleece-poncho': '/images/poncho.webp',
+  'tracksuit-set': '/images/tracksuit.webp',
+  'athletic-tracksuit': '/images/tracksuit.webp',
+  'muso-logo': '/images/logo.jpg',
+  'grysons-logo': '/images/logo.jpg',
+};
+
 /**
  * Returns whether an image key has a custom photo URL attached
  */
 export function getProductImageUrl(imageKey: string): string | null {
   const overrides = getCustomPhotoOverrides();
-  return overrides[imageKey] || null;
+  return overrides[imageKey] || DEFAULT_IMAGE_MAP[imageKey] || null;
 }
 
 /**

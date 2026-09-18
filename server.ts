@@ -14,6 +14,8 @@ async function startServer() {
   // Directories for persistent storage
   const dataDir = path.join(process.cwd(), 'data');
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+  const imagesDir = path.join(process.cwd(), 'public', 'images');
+  const imagesCollectionDir = path.join(process.cwd(), 'images collection');
 
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
@@ -21,9 +23,15 @@ async function startServer() {
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
+  if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir, { recursive: true });
+  }
 
-  // Serve static uploads
+  // Serve static uploads and images
   app.use('/uploads', express.static(uploadsDir));
+  app.use('/images', express.static(imagesDir));
+  app.use('/images%20collection', express.static(imagesCollectionDir));
+  app.use('/images collection', express.static(imagesCollectionDir));
 
   // --- API Routes ---
 

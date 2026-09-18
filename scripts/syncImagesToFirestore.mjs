@@ -121,12 +121,21 @@ const PHOTO_MAPPINGS = [
   },
   {
     id: 'photo-logo',
-    filename: 'logo.jpeg',
-    cleanFilename: 'logo.jpg',
-    name: "Gryson's Apparel Brand Logo Emblem",
+    customPath: path.resolve(process.cwd(), 'public/grysons-logo.jpg'),
+    cleanFilename: 'grysons-logo.jpg',
+    name: "Gryson's Apparel Brand Official Logo Emblem",
     category: 'all',
     mimeType: 'image/jpeg',
     assignedProductId: 'branding-logo',
+  },
+  {
+    id: 'photo-promo-flyer',
+    filename: 'logo.jpeg',
+    cleanFilename: 'promo-poster.jpg',
+    name: "Gryson's Apparel Merch Promo Flyer",
+    category: 'all',
+    mimeType: 'image/jpeg',
+    assignedProductId: 'promo-flyer',
   },
 ];
 
@@ -138,7 +147,7 @@ async function run() {
   const photoMapByProductId = new Map();
 
   for (const item of PHOTO_MAPPINGS) {
-    const filePath = path.join(IMAGES_DIR, item.filename);
+    const filePath = item.customPath || path.join(IMAGES_DIR, item.filename);
     if (!fs.existsSync(filePath)) {
       console.warn(`File not found: ${filePath}`);
       continue;

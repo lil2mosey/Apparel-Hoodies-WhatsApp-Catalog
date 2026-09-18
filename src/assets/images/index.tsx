@@ -204,8 +204,8 @@ const DEFAULT_IMAGE_MAP: Record<string, string> = {
   'fleece-poncho': '/images/poncho.webp',
   'tracksuit-set': '/images/tracksuit.webp',
   'athletic-tracksuit': '/images/tracksuit.webp',
-  'muso-logo': '/images/logo.jpg',
-  'grysons-logo': '/images/logo.jpg',
+  'muso-logo': '/grysons-logo.jpg',
+  'grysons-logo': '/grysons-logo.jpg',
 };
 
 /**

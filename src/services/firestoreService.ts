@@ -28,6 +28,10 @@ function cleanForFirestore(obj: Record<string, any>): Record<string, any> {
 // Ensure product document does not exceed Firestore limits by duplicating identical large image data
 export function cleanProductForFirestore(product: Product): Record<string, any> {
   const cleaned = cleanForFirestore(product);
+  // Guarantee colors array contains only valid, non-null objects
+  if (Array.isArray(cleaned.colors)) {
+    cleaned.colors = cleaned.colors.filter((c: any) => Boolean(c && typeof c === 'object' && c.name && c.hex));
+  }
   // If uploadedImageUrl is a data URL, prevent 'image' from duplicating the exact same string
   if (
     cleaned.uploadedImageUrl &&
@@ -59,10 +63,16 @@ export function subscribeToProducts(
           const items: Product[] = [];
           snapshot.forEach((docSnap) => {
             const data = docSnap.data() as Product;
-            items.push({
-              ...data,
-              id: docSnap.id,
-            });
+            if (data && typeof data === 'object') {
+              const cleanColors = Array.isArray(data.colors)
+                ? data.colors.filter((c: any) => Boolean(c && typeof c === 'object' && c.name && c.hex))
+                : [];
+              items.push({
+                ...data,
+                id: docSnap.id,
+                colors: cleanColors.length > 0 ? cleanColors : [{ name: 'Jet Black', hex: '#171717' }],
+              });
+            }
           });
           onUpdate(items);
         } else {
@@ -92,10 +102,17 @@ export async function getProductsFromFirestore(): Promise<Product[] | null> {
     if (!snapshot.empty) {
       const items: Product[] = [];
       snapshot.forEach((docSnap) => {
-        items.push({
-          ...(docSnap.data() as Product),
-          id: docSnap.id,
-        });
+        const data = docSnap.data() as Product;
+        if (data && typeof data === 'object') {
+          const cleanColors = Array.isArray(data.colors)
+            ? data.colors.filter((c: any) => Boolean(c && typeof c === 'object' && c.name && c.hex))
+            : [];
+          items.push({
+            ...data,
+            id: docSnap.id,
+            colors: cleanColors.length > 0 ? cleanColors : [{ name: 'Jet Black', hex: '#171717' }],
+          });
+        }
       });
       return items;
     }

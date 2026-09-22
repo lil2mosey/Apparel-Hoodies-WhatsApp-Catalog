@@ -21,9 +21,10 @@ import {
   StoreContact,
   PhotoAsset,
   AppTheme,
-  AppViewMode
+  AppViewMode,
+  PoloFilterState
 } from './types';
-import { PRODUCTS, CATEGORIES, DEFAULT_STORE_CONTACT } from './data/products';
+import { PRODUCTS, CATEGORIES, DEFAULT_STORE_CONTACT, COMMON_COLORS, POLO_DESIGNS } from './data/products';
 import { Navbar } from './components/Navbar';
 import { ProductCard } from './components/ProductCard';
 import { ProductModal } from './components/ProductModal';
@@ -35,6 +36,7 @@ import { OwnerAuthModal, OwnerPinForm, OwnerSetupPasslockForm } from './componen
 import { Footer } from './components/Footer';
 import { MobileBottomBar } from './components/MobileBottomBar';
 import { MusoBrandLogo } from './components/MusoBrandLogo';
+import { PoloFilterBar, INITIAL_POLO_FILTERS } from './components/PoloFilterBar';
 import { 
   savePersistentData, 
   getPersistentData, 
@@ -64,6 +66,43 @@ const checkIsAdminPath = () => {
   const hash = window.location.hash.toLowerCase();
   const search = window.location.search.toLowerCase();
   return path === '/admin' || path.startsWith('/admin/') || hash === '#admin' || search.includes('admin=true') || search.includes('view=admin');
+};
+
+const sanitizeProductList = (prods: Product[]): Product[] => {
+  if (!Array.isArray(prods)) return PRODUCTS;
+  const defaultPolo = PRODUCTS.find((p) => p.id === 'polo-shirts');
+  
+  // Filter out any obsolete individual polo products if loading from an older local cache
+  const filtered = prods.filter((p): p is Product => {
+    if (!p || typeof p !== 'object' || !p.id || !p.name) return false;
+    if (p.category === 'polo-shirts' && p.id !== 'polo-shirts') return false;
+    return true;
+  });
+
+  const hasPolo = filtered.some((p) => p.id === 'polo-shirts');
+  const baseList = hasPolo ? filtered : (defaultPolo ? [...filtered, defaultPolo] : filtered);
+
+  return baseList.map((p) => {
+    const cleanColors = Array.isArray(p.colors)
+      ? p.colors.filter((c): c is ColorOption => Boolean(c && typeof c === 'object' && c.name && c.hex))
+      : [];
+    
+    if (p.id === 'polo-shirts') {
+      return {
+        ...p,
+        colors: cleanColors.length > 0 ? cleanColors : (defaultPolo?.colors || [COMMON_COLORS.black]),
+        sizes: Array.isArray(p.sizes) && p.sizes.length > 0 ? p.sizes : ['S', 'M', 'L', 'XL', '2XL'],
+        poloDesigns: (p.poloDesigns && p.poloDesigns.length > 0) ? p.poloDesigns : POLO_DESIGNS,
+        poloAttributes: p.poloAttributes || defaultPolo?.poloAttributes,
+      };
+    }
+
+    return {
+      ...p,
+      colors: cleanColors.length > 0 ? cleanColors : [COMMON_COLORS.black],
+      sizes: Array.isArray(p.sizes) && p.sizes.length > 0 ? p.sizes : ['S', 'M', 'L', 'XL', '2XL'],
+    };
+  });
 };
 
 export default function App() {
@@ -217,7 +256,9 @@ export default function App() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const userCustomMap = new Map<string, Product>();
-          parsed.forEach((p: Product) => userCustomMap.set(p.id, p));
+          parsed.forEach((p: Product) => {
+            if (p && p.id) userCustomMap.set(p.id, p);
+          });
 
           const mergedDefaults = PRODUCTS.map((defaultProd) => {
             const userProd = userCustomMap.get(defaultProd.id);
@@ -232,15 +273,22 @@ export default function App() {
                 customizable: userProd.customizable !== undefined ? userProd.customizable : defaultProd.customizable,
                 colors: (userProd.colors && userProd.colors.length > 0) ? userProd.colors : defaultProd.colors,
                 sizes: (userProd.sizes && userProd.sizes.length > 0) ? userProd.sizes : defaultProd.sizes,
+                stylePattern: userProd.stylePattern || defaultProd.stylePattern,
+                sleeveLength: userProd.sleeveLength || defaultProd.sleeveLength,
+                fit: userProd.fit || defaultProd.fit,
+                fabricWeight: userProd.fabricWeight || defaultProd.fabricWeight,
+                fabricType: userProd.fabricType || defaultProd.fabricType,
+                closureType: userProd.closureType || defaultProd.closureType,
+                poloAttributes: userProd.poloAttributes || defaultProd.poloAttributes,
               };
             }
             return defaultProd;
           });
 
           const defaultIds = new Set(PRODUCTS.map((p) => p.id));
-          const userCreatedItems = parsed.filter((p: Product) => !defaultIds.has(p.id));
+          const userCreatedItems = parsed.filter((p: Product) => p && p.id && !defaultIds.has(p.id));
 
-          return [...mergedDefaults, ...userCreatedItems];
+          return sanitizeProductList([...mergedDefaults, ...userCreatedItems]);
         }
       }
     } catch {
@@ -254,15 +302,16 @@ export default function App() {
   useEffect(() => {
     getPersistentData<Product[]>('products_catalog').then((dbProducts) => {
       if (dbProducts && Array.isArray(dbProducts) && dbProducts.length > 0) {
+        const cleanDbProducts = sanitizeProductList(dbProducts);
         setProducts((current) => {
           const currentHasCustom = current.some((p) => p.uploadedImageUrl);
           if (!currentHasCustom) {
-            return dbProducts;
+            return cleanDbProducts;
           }
           return current;
         });
 
-        dbProducts.forEach((p) => {
+        cleanDbProducts.forEach((p) => {
           const photo = p.uploadedImageUrl || (p.image && (p.image.startsWith('data:image/') || p.image.startsWith('http') || p.image.startsWith('/')) ? p.image : undefined);
           if (photo) {
             saveCustomPhotoOverride(p.id, photo);
@@ -285,16 +334,17 @@ export default function App() {
     const unsubscribeProducts = subscribeToProducts(
       (firestoreProducts) => {
         if (firestoreProducts && Array.isArray(firestoreProducts) && firestoreProducts.length > 0) {
-          setProducts(firestoreProducts);
-          savePersistentData('products_catalog', firestoreProducts);
+          const cleanProds = sanitizeProductList(firestoreProducts);
+          setProducts(cleanProds);
+          savePersistentData('products_catalog', cleanProds);
           try {
-            localStorage.setItem('muso_products_catalog', JSON.stringify(firestoreProducts));
+            localStorage.setItem('muso_products_catalog', JSON.stringify(cleanProds));
           } catch {
             // ignore
           }
 
           // Register photo overrides so all visual components update immediately
-          firestoreProducts.forEach((p) => {
+          cleanProds.forEach((p) => {
             const photo = p.uploadedImageUrl || (p.image && (p.image.startsWith('data:image/') || p.image.startsWith('http') || p.image.startsWith('/')) ? p.image : undefined);
             if (photo) {
               saveCustomPhotoOverride(p.id, photo);
@@ -308,7 +358,7 @@ export default function App() {
         // Fallback to local storage if offline
         getPersistentData<Product[]>('products_catalog').then((dbProducts) => {
           if (dbProducts && Array.isArray(dbProducts) && dbProducts.length > 0) {
-            setProducts(dbProducts);
+            setProducts(sanitizeProductList(dbProducts));
           }
         });
       }
@@ -340,10 +390,15 @@ export default function App() {
     // 3. Real-time Store Contact subscription in Cloud Firestore
     const unsubscribeContact = subscribeToStoreContact((firestoreContact) => {
       if (firestoreContact && firestoreContact.phone) {
-        setStoreContact(firestoreContact);
-        savePersistentData('store_contact', firestoreContact);
+        const merged = {
+          ...DEFAULT_STORE_CONTACT,
+          ...firestoreContact,
+          name: firestoreContact.name || DEFAULT_STORE_CONTACT.name,
+        };
+        setStoreContact(merged);
+        savePersistentData('store_contact', merged);
         try {
-          localStorage.setItem('muso_store_contact', JSON.stringify(firestoreContact));
+          localStorage.setItem('muso_store_contact', JSON.stringify(merged));
         } catch {
           // ignore
         }
@@ -358,22 +413,23 @@ export default function App() {
   }, []);
 
   const handleSaveProducts = (newProducts: Product[]) => {
-    setProducts(newProducts);
-    savePersistentData('products_catalog', newProducts);
+    const cleaned = sanitizeProductList(newProducts);
+    setProducts(cleaned);
+    savePersistentData('products_catalog', cleaned);
     // Register photo overrides immediately
-    newProducts.forEach((p) => {
+    cleaned.forEach((p) => {
       const photo = p.uploadedImageUrl || (p.image && (p.image.startsWith('data:image/') || p.image.startsWith('http') || p.image.startsWith('/')) ? p.image : undefined);
       if (photo) {
         saveCustomPhotoOverride(p.id, photo);
       }
     });
     // Persist to Cloud Firestore for permanent global access
-    saveAllProductsToFirestore(newProducts).catch((err) => {
+    saveAllProductsToFirestore(cleaned).catch((err) => {
       console.error('Failed to sync products to Firestore:', err);
     });
-    syncProductsToServer(newProducts);
+    syncProductsToServer(cleaned);
     try {
-      localStorage.setItem('muso_products_catalog', JSON.stringify(newProducts));
+      localStorage.setItem('muso_products_catalog', JSON.stringify(cleaned));
     } catch {
       // ignore
     }
@@ -386,7 +442,14 @@ export default function App() {
       const savedVersion = localStorage.getItem('muso_contact_version');
       const saved = localStorage.getItem('muso_store_contact');
       if (saved && savedVersion === CONTACT_VERSION) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && parsed.name) {
+          return {
+            ...DEFAULT_STORE_CONTACT,
+            ...parsed,
+            name: parsed.name || DEFAULT_STORE_CONTACT.name,
+          };
+        }
       }
       localStorage.setItem('muso_contact_version', CONTACT_VERSION);
       localStorage.setItem('muso_store_contact', JSON.stringify(DEFAULT_STORE_CONTACT));
@@ -517,16 +580,24 @@ export default function App() {
 
   // Customer Modals
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
+  const [modalInitialDesignId, setModalInitialDesignId] = useState<string | undefined>(undefined);
   const [directOrderProduct, setDirectOrderProduct] = useState<{
     product: Product;
     color: ColorOption;
     size: ApparelSize;
     quantity: number;
     customText?: string;
+    designName?: string;
   } | null>(null);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState<boolean>(false);
   const [sizeGuideCategory, setSizeGuideCategory] = useState<string>('hoodies');
   const [isLogoShowcaseOpen, setIsLogoShowcaseOpen] = useState<boolean>(false);
+
+  // Open details modal
+  const handleOpenProductDetails = (product: Product, designId?: string) => {
+    setModalInitialDesignId(designId);
+    setSelectedProductForModal(product);
+  };
 
   // Direct WhatsApp order trigger
   const handleOpenDirectOrder = (
@@ -534,7 +605,8 @@ export default function App() {
     color: ColorOption,
     size: ApparelSize,
     qty: number,
-    customText?: string
+    customText?: string,
+    designName?: string
   ) => {
     setSelectedProductForModal(null);
     setDirectOrderProduct({
@@ -543,6 +615,7 @@ export default function App() {
       size,
       quantity: qty,
       customText,
+      designName,
     });
   };
 
@@ -552,6 +625,51 @@ export default function App() {
     setIsSizeGuideOpen(true);
   };
 
+  // Dynamic Polo Shirt Filter State
+  const [poloFilters, setPoloFilters] = useState<PoloFilterState>(INITIAL_POLO_FILTERS);
+
+  const handleTogglePoloFilter = (group: keyof PoloFilterState, value: string) => {
+    setPoloFilters((prev) => {
+      const currentList = prev[group] as string[];
+      const isAlreadySelected = currentList.includes(value);
+      const nextList = isAlreadySelected
+        ? currentList.filter((v) => v !== value)
+        : [...currentList, value];
+      return {
+        ...prev,
+        [group]: nextList,
+      };
+    });
+  };
+
+  const handleSelectOnlyPoloFilter = (group: keyof PoloFilterState, value: string) => {
+    setPoloFilters((prev) => ({
+      ...prev,
+      [group]: [value],
+    }));
+  };
+
+  const handleClearPoloFilters = () => {
+    setPoloFilters(INITIAL_POLO_FILTERS);
+  };
+
+  // Total active polo filters
+  const totalActivePoloFilters = useMemo(() => {
+    return (
+      poloFilters.stylePattern.length +
+      poloFilters.sleeveLength.length +
+      poloFilters.fit.length +
+      poloFilters.fabricWeight.length +
+      poloFilters.fabricType.length +
+      poloFilters.closureType.length
+    );
+  }, [poloFilters]);
+
+  // All polo shirts in catalog
+  const poloProducts = useMemo(() => {
+    return products.filter((p) => p.category === 'polo-shirts');
+  }, [products]);
+
   // Filtered & Sorted products for Customer view
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -559,14 +677,72 @@ export default function App() {
       if (selectedCategory !== 'all' && p.category !== selectedCategory) {
         return false;
       }
+
+      // Dynamic Polo Attributes Filter:
+      // Applies when on polo-shirts category or when polo filters are active
+      if (p.category === 'polo-shirts' && totalActivePoloFilters > 0) {
+        const designs = p.poloDesigns && p.poloDesigns.length > 0 ? p.poloDesigns : POLO_DESIGNS;
+        const matchesAnyDesign = designs.some((d) => {
+          if (poloFilters.stylePattern.length > 0 && !poloFilters.stylePattern.includes(d.stylePattern as any)) {
+            return false;
+          }
+          if (poloFilters.sleeveLength.length > 0 && !poloFilters.sleeveLength.includes(d.sleeveLength as any)) {
+            return false;
+          }
+          if (poloFilters.fit.length > 0 && !poloFilters.fit.includes(d.fit as any)) {
+            return false;
+          }
+          if (poloFilters.fabricWeight.length > 0 && !poloFilters.fabricWeight.includes(d.fabricWeight as any)) {
+            return false;
+          }
+          if (poloFilters.fabricType.length > 0 && !poloFilters.fabricType.includes(d.fabricType as any)) {
+            return false;
+          }
+          if (poloFilters.closureType.length > 0 && !poloFilters.closureType.includes(d.closureType as any)) {
+            return false;
+          }
+          return true;
+        });
+
+        if (!matchesAnyDesign) {
+          return false;
+        }
+      }
+
+      // If polo filters are active and user selected "all", only show polo shirts that match
+      if (selectedCategory === 'all' && totalActivePoloFilters > 0 && p.category !== 'polo-shirts') {
+        return false;
+      }
+
       // Search filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matchesName = p.name.toLowerCase().includes(q);
-        const matchesCategory = p.category.toLowerCase().includes(q);
-        const matchesDescription = p.description.toLowerCase().includes(q);
-        const matchesColors = p.colors.some((c) => c.name.toLowerCase().includes(q));
-        if (!matchesName && !matchesCategory && !matchesDescription && !matchesColors) {
+        const matchesName = (p.name || '').toLowerCase().includes(q);
+        const matchesCategory = (p.category || '').toLowerCase().includes(q);
+        const matchesDescription = (p.description || '').toLowerCase().includes(q);
+        const matchesColors = Array.isArray(p.colors) && p.colors.some((c) => Boolean(c && c.name && c.name.toLowerCase().includes(q)));
+        const matchesPoloAttrs =
+          Boolean(p.stylePattern?.toLowerCase().includes(q)) ||
+          Boolean(p.sleeveLength?.toLowerCase().includes(q)) ||
+          Boolean(p.fabricWeight?.toLowerCase().includes(q)) ||
+          Boolean(p.fabricType?.toLowerCase().includes(q)) ||
+          Boolean(p.closureType?.toLowerCase().includes(q)) ||
+          Boolean(p.fit?.toLowerCase().includes(q));
+
+        const poloDesigns = p.poloDesigns || POLO_DESIGNS;
+        const matchesPoloDesigns = p.category === 'polo-shirts' && poloDesigns.some((d) =>
+          d.name.toLowerCase().includes(q) ||
+          d.subtitle.toLowerCase().includes(q) ||
+          d.description.toLowerCase().includes(q) ||
+          d.stylePattern.toLowerCase().includes(q) ||
+          d.sleeveLength.toLowerCase().includes(q) ||
+          d.fit.toLowerCase().includes(q) ||
+          d.fabricWeight.toLowerCase().includes(q) ||
+          d.fabricType.toLowerCase().includes(q) ||
+          d.closureType.toLowerCase().includes(q)
+        );
+
+        if (!matchesName && !matchesCategory && !matchesDescription && !matchesColors && !matchesPoloAttrs && !matchesPoloDesigns) {
           return false;
         }
       }
@@ -581,7 +757,12 @@ export default function App() {
       if (!a.featured && b.featured) return 1;
       return 0;
     });
-  }, [products, selectedCategory, searchQuery, sortBy]);
+  }, [products, selectedCategory, searchQuery, sortBy, poloFilters, totalActivePoloFilters]);
+
+  // Count of filtered polo shirts
+  const filteredPoloCount = useMemo(() => {
+    return filteredProducts.filter((p) => p.category === 'polo-shirts').length;
+  }, [filteredProducts]);
 
   // Compute category counts dynamically
   const categoriesWithCounts = useMemo(() => {
@@ -799,6 +980,7 @@ export default function App() {
           <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
             {categoriesWithCounts.map((cat) => {
               const isSelected = selectedCategory === cat.id;
+              const isPolo = cat.id === 'polo-shirts';
               return (
                 <button
                   key={cat.id}
@@ -820,6 +1002,14 @@ export default function App() {
                   >
                     {cat.count}
                   </span>
+                  {isPolo && totalActivePoloFilters > 0 && (
+                    <span
+                      className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-500 text-white"
+                      title={`${totalActivePoloFilters} polo filters active`}
+                    >
+                      {totalActivePoloFilters} filtered
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -847,6 +1037,18 @@ export default function App() {
           </div>
         </div>
 
+        {/* Dynamic Polo Filters Engine Bar */}
+        {(selectedCategory === 'polo-shirts' || totalActivePoloFilters > 0) && (
+          <PoloFilterBar
+            filters={poloFilters}
+            onToggleFilter={handleTogglePoloFilter}
+            onClearAll={handleClearPoloFilters}
+            onSelectOnly={handleSelectOnlyPoloFilter}
+            poloProducts={poloProducts}
+            filteredCount={filteredPoloCount}
+          />
+        )}
+
         {/* Product Cards Grid */}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-[#1a202c] rounded-3xl border border-[#e5dfd3] dark:border-[#2d3748] p-8 space-y-4">
@@ -856,18 +1058,30 @@ export default function App() {
             <div>
               <h3 className="text-lg font-bold text-neutral-900 dark:text-white">No items found</h3>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 max-w-sm mx-auto">
-                No apparel matched your current search or category filter. Try clearing your search query.
+                No apparel matched your current search or dynamic polo filter criteria. Try clearing or adjusting your filters.
               </p>
             </div>
-            <button
-              onClick={() => {
-                setSelectedCategory('all');
-                setSearchQuery('');
-              }}
-              className="px-5 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold transition-colors"
-            >
-              Reset Filters
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                onClick={() => {
+                  setSelectedCategory('all');
+                  setSearchQuery('');
+                  handleClearPoloFilters();
+                }}
+                className="px-5 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold transition-colors shadow-xs"
+              >
+                Reset All Filters & Search
+              </button>
+              {totalActivePoloFilters > 0 && (
+                <button
+                  id="reset-polo-filters-only-btn"
+                  onClick={handleClearPoloFilters}
+                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors shadow-xs"
+                >
+                  Reset Polo Filters ({totalActivePoloFilters} active)
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -875,9 +1089,14 @@ export default function App() {
               <ProductCard
                 key={product.id}
                 product={product}
-                onOpenDetails={setSelectedProductForModal}
-                onDirectOrder={(prod, col, sz, qty) => handleOpenDirectOrder(prod, col, sz, qty)}
+                onOpenDetails={(prod, designId) => handleOpenProductDetails(prod, designId)}
+                onDirectOrder={(prod, col, sz, qty, designName) => handleOpenDirectOrder(prod, col, sz, qty, undefined, designName)}
                 onOpenSizeGuide={handleOpenSizeGuide}
+                activePoloFilters={poloFilters}
+                onFilterTagClick={(group, value) => {
+                  setSelectedCategory('polo-shirts');
+                  handleTogglePoloFilter(group, value);
+                }}
               />
             ))}
           </div>
@@ -948,8 +1167,12 @@ export default function App() {
       {selectedProductForModal && (
         <ProductModal
           isOpen={!!selectedProductForModal}
-          onClose={() => setSelectedProductForModal(null)}
+          onClose={() => {
+            setSelectedProductForModal(null);
+            setModalInitialDesignId(undefined);
+          }}
           product={selectedProductForModal}
+          initialDesignId={modalInitialDesignId}
           onDirectOrder={handleOpenDirectOrder}
           onOpenSizeGuide={handleOpenSizeGuide}
           storeContact={storeContact}
@@ -964,6 +1187,7 @@ export default function App() {
           initialColor={directOrderProduct.color}
           initialSize={directOrderProduct.size}
           initialQuantity={directOrderProduct.quantity}
+          initialDesign={directOrderProduct.designName}
           storeContact={storeContact}
         />
       )}

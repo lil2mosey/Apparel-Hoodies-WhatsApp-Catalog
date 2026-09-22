@@ -18,6 +18,50 @@ export interface ColorOption {
 
 export type ApparelSize = 'XS' | 'S' | 'M' | 'L' | 'XL' | '2XL' | '3XL' | 'One Size';
 
+export type PoloStylePattern = 'Plain / Solid' | 'Contrast Tipped' | 'Striped';
+export type PoloSleeveLength = 'Short Sleeve' | 'Long Sleeve';
+export type PoloFit = 'Regular Fit' | 'Slim Fit' | 'Oversized';
+export type PoloFabricWeight = 'Lightweight (<180 GSM)' | 'Midweight (180–210 GSM)' | 'Heavyweight (220+ GSM)';
+export type PoloFabricType = 'Piqué Cotton' | 'Interlock' | 'Cotton Blend';
+export type PoloClosureType = '2-Button Placket' | '3-Button Placket';
+
+export interface PoloFilterAttributes {
+  stylePattern?: PoloStylePattern;
+  sleeveLength?: PoloSleeveLength;
+  fit?: PoloFit;
+  fabricWeight?: PoloFabricWeight;
+  fabricType?: PoloFabricType;
+  closureType?: PoloClosureType;
+}
+
+export interface PoloFilterState {
+  stylePattern: PoloStylePattern[];
+  sleeveLength: PoloSleeveLength[];
+  fit: PoloFit[];
+  fabricWeight: PoloFabricWeight[];
+  fabricType: PoloFabricType[];
+  closureType: PoloClosureType[];
+}
+
+export interface PoloDesignOption {
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  stylePattern: PoloStylePattern;
+  sleeveLength: PoloSleeveLength;
+  fit: PoloFit;
+  fabricWeight: PoloFabricWeight;
+  fabricType: PoloFabricType;
+  closureType: PoloClosureType;
+  fabric: string;
+  features?: string[];
+  popularBadge?: string;
+  colors?: ColorOption[];
+  image?: string;
+  uploadedImageUrl?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -38,6 +82,17 @@ export interface Product {
   inStock?: boolean;
   stockQty?: number;
   uploadedImageUrl?: string; // Custom uploaded real photo
+  
+  // Specific Apparel Attributes & Filter Tags (especially for polo shirts)
+  stylePattern?: PoloStylePattern;
+  sleeveLength?: PoloSleeveLength;
+  fabricWeight?: PoloFabricWeight;
+  fabricType?: PoloFabricType;
+  closureType?: PoloClosureType;
+  poloAttributes?: PoloFilterAttributes;
+
+  // Designs / Styles for the unified Polo Shirt dropdown
+  poloDesigns?: PoloDesignOption[];
 }
 
 export interface PhotoAsset {
@@ -57,6 +112,7 @@ export interface CartItem {
   category: string;
   selectedColor: ColorOption;
   selectedSize: ApparelSize;
+  selectedDesign?: string; // Selected polo design from dropdown
   quantity: number;
   unitPrice: number;
   currency: string;

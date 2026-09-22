@@ -1,4 +1,4 @@
-import { Product, ColorOption, StoreContact, ProductCategory } from '../types';
+import { Product, ColorOption, StoreContact, ProductCategory, PoloDesignOption } from '../types';
 
 export const DEFAULT_STORE_CONTACT: StoreContact = {
   name: "Gryson",
@@ -14,6 +14,7 @@ export const COMMON_COLORS: Record<string, ColorOption> = {
   white: { name: 'White', hex: '#FFFFFF', twClass: 'bg-white border-neutral-300' },
   black: { name: 'Jet Black', hex: '#171717', twClass: 'bg-neutral-900' },
   maroon: { name: 'Maroon / Burgundy', hex: '#6b1d2f', twClass: 'bg-[#6b1d2f]' },
+  burgundy: { name: 'Deep Burgundy', hex: '#5b1220', twClass: 'bg-[#5b1220]' },
   crimsonRed: { name: 'Vibrant Red', hex: '#dc2626', twClass: 'bg-red-600' },
   mustardYellow: { name: 'Mustard Yellow', hex: '#eab308', twClass: 'bg-amber-500' },
   pinkRose: { name: 'Bubblegum Pink', hex: '#ec4899', twClass: 'bg-pink-500' },
@@ -28,6 +29,191 @@ export const COMMON_COLORS: Record<string, ColorOption> = {
   heatherGrey: { name: 'Heather Grey', hex: '#94a3b8', twClass: 'bg-slate-400' },
   beigeKhaki: { name: 'Beige / Khaki', hex: '#d4c5b9', twClass: 'bg-[#d4c5b9]' },
 };
+
+export const POLO_DESIGNS: PoloDesignOption[] = [
+  {
+    id: 'classic-solid-pique',
+    name: 'Classic Plain Solid Combed Piqué Polo',
+    subtitle: 'Pure solid combed piqué cotton with clean collar & 2-button placket',
+    description: 'Timeless everyday solid polo shirt featuring breathable combed piqué cotton knit, clean monochromatic matching collar, reinforced 2-button front placket, and side vents.',
+    stylePattern: 'Plain / Solid',
+    sleeveLength: 'Short Sleeve',
+    fit: 'Regular Fit',
+    fabricWeight: 'Midweight (180–210 GSM)',
+    fabricType: 'Piqué Cotton',
+    closureType: '2-Button Placket',
+    fabric: '200 GSM 100% Combed Cotton Piqué',
+    popularBadge: 'Timeless Classic',
+    features: [
+      'Traditional 2-button placket with tone-on-tone buttons',
+      'Anti-curl double-needle ribbed collar',
+      'Reinforced shoulder seam tape for long-term shape',
+      'Breathable honeycomb knit structure'
+    ]
+  },
+  {
+    id: 'pique-dotted-collar',
+    name: 'Piqué Dotted & Solid Collar Polo',
+    subtitle: 'Breathable honeycomb piqué polo with dotted accents & 3-button placket',
+    description: 'Smart casual polo shirt crafted from breathable honeycomb piqué fabric with a crisp structured collar, dotted finish accents, and tailored 3-button placket. Available in an extensive range of vibrant solid colors.',
+    stylePattern: 'Contrast Tipped',
+    sleeveLength: 'Short Sleeve',
+    fit: 'Regular Fit',
+    fabricWeight: 'Heavyweight (220+ GSM)',
+    fabricType: 'Piqué Cotton',
+    closureType: '3-Button Placket',
+    fabric: '220 GSM 100% Combed Cotton Honeycomb Piqué',
+    popularBadge: 'Best Value',
+    features: [
+      '3-button reinforced front placket',
+      'Shape-retaining ribbed collar & sleeve bands',
+      'Side vents for comfortable movement',
+      'Resistant to color fading and shrinking'
+    ]
+  },
+  {
+    id: 'contrast-tipped-slim',
+    name: 'Contrast Tipped Slim Fit Cotton Blend Polo',
+    subtitle: 'Modern slim silhouette with signature twin-tipped collar & sleeve bands',
+    description: 'Sporty slim-fit polo with iconic contrast stripe tipping along the ribbed collar and cuffs. High-mobility stretch cotton-poly blend with 2-button mother-of-pearl placket.',
+    stylePattern: 'Contrast Tipped',
+    sleeveLength: 'Short Sleeve',
+    fit: 'Slim Fit',
+    fabricWeight: 'Midweight (180–210 GSM)',
+    fabricType: 'Cotton Blend',
+    closureType: '2-Button Placket',
+    fabric: '190 GSM 65% Cotton, 35% Poly Breathable Blend',
+    popularBadge: 'Slim Fit',
+    image: '/images/contrast-tipped-polo.jpeg',
+    uploadedImageUrl: '/images/contrast-tipped-polo.jpeg',
+    features: [
+      'Twin-stripe contrast tipping on collar and cuff ribs',
+      'Modern tapered chest and sleeve taper',
+      'Clean 2-button placket with contrast piping detail',
+      'Wrinkle-resistant easy care fabric'
+    ]
+  },
+  {
+    id: 'long-sleeve-interlock',
+    name: 'Executive Long Sleeve Interlock Polo',
+    subtitle: 'Ultra-smooth long sleeve interlock polo for chilly mornings & corporate wear',
+    description: 'Premium ultra-smooth interlock double-knit cotton polo with tailored long sleeves, shape-retaining ribbed cuffs, 3-button placket, and luxurious drape.',
+    stylePattern: 'Plain / Solid',
+    sleeveLength: 'Long Sleeve',
+    fit: 'Regular Fit',
+    fabricWeight: 'Heavyweight (220+ GSM)',
+    fabricType: 'Interlock',
+    closureType: '3-Button Placket',
+    fabric: '230 GSM Heavyweight Double-Knit Cotton Interlock',
+    popularBadge: 'Corporate Favorite',
+    features: [
+      'Full long sleeves with snug ribbed cuffs',
+      '3-button formal placket with cross-stitched buttons',
+      'Silky smooth interlock surface ideal for sharp embroidery',
+      'Pre-shrunk against washing contraction'
+    ]
+  },
+  {
+    id: 'striped-heavyweight-pique',
+    name: 'Engineered Striped Heavyweight Piqué Polo',
+    subtitle: 'Nautical yarn-dyed horizontal rugby stripes with structured collar',
+    description: 'Vibrant yarn-dyed engineered striped polo shirt made of robust 240 GSM piqué cotton. Features reinforced split side hem, 3-button placket, and anti-curl collar.',
+    stylePattern: 'Striped',
+    sleeveLength: 'Short Sleeve',
+    fit: 'Regular Fit',
+    fabricWeight: 'Heavyweight (220+ GSM)',
+    fabricType: 'Piqué Cotton',
+    closureType: '3-Button Placket',
+    fabric: '240 GSM 100% Yarn-Dyed Combed Cotton Piqué',
+    popularBadge: 'Bold Striped',
+    features: [
+      'Bold yarn-dyed horizontal stripe pattern that will not wash out',
+      '3-button reinforced placket with interior contrast tape',
+      'Extended back tennis tail with side split vents',
+      'Substantial heavyweight textured hand-feel'
+    ]
+  },
+  {
+    id: 'oversized-boxy-interlock',
+    name: 'Oversized Boxy Heavyweight Interlock Polo',
+    subtitle: 'Drop-shoulder relaxed streetwear silhouette in heavy dense interlock',
+    description: 'Modern streetwear cut boxy polo with dropped shoulders, wide half sleeves, dense 260 GSM interlock cotton, and minimal 2-button placket.',
+    stylePattern: 'Plain / Solid',
+    sleeveLength: 'Short Sleeve',
+    fit: 'Oversized',
+    fabricWeight: 'Heavyweight (220+ GSM)',
+    fabricType: 'Interlock',
+    closureType: '2-Button Placket',
+    fabric: '260 GSM Ultra-Dense Compact Cotton Interlock',
+    popularBadge: 'Streetwear Oversized',
+    features: [
+      'Relaxed boxy body with dropped shoulder seams',
+      'Wider elbow-length sleeve profile',
+      'Clean 2-button concealed placket for clean look',
+      'Heavy drape and luxurious non-see-through weight'
+    ]
+  },
+  {
+    id: 'lightweight-summer-blend',
+    name: 'Lightweight Breathable Cotton Blend Polo',
+    subtitle: 'Ultra-airy lightweight quick-dry cotton-poly blend for hot weather',
+    description: 'Featherlight 165 GSM breathable summer polo with moisture-wicking properties, 3-button front closure, and lightweight ribbed collar.',
+    stylePattern: 'Plain / Solid',
+    sleeveLength: 'Short Sleeve',
+    fit: 'Slim Fit',
+    fabricWeight: 'Lightweight (<180 GSM)',
+    fabricType: 'Cotton Blend',
+    closureType: '3-Button Placket',
+    fabric: '165 GSM Lightweight 60% Cotton 40% Polyester Blend',
+    popularBadge: 'Light & Airy',
+    features: [
+      'Featherweight <180 GSM airy knit structure',
+      'Quick-drying and breathable in hot climate',
+      'Structured 3-button collar placket',
+      'Easy wash and fast dry for daily wear'
+    ]
+  },
+  {
+    id: 'contrast-tipped-long-sleeve',
+    name: 'Contrast Tipped Long Sleeve Piqué Polo',
+    subtitle: 'Smart casual long sleeve with subtle contrast piping & collar accents',
+    description: 'Refined long sleeve polo shirt crafted with honeycomb piqué texture, discrete contrast tipped edges along the collar and cuffs, and a reinforced 3-button closure.',
+    stylePattern: 'Contrast Tipped',
+    sleeveLength: 'Long Sleeve',
+    fit: 'Slim Fit',
+    fabricWeight: 'Midweight (180–210 GSM)',
+    fabricType: 'Piqué Cotton',
+    closureType: '3-Button Placket',
+    fabric: '205 GSM Combed Cotton Honeycomb Piqué',
+    popularBadge: 'Premium Long Sleeve',
+    features: [
+      'Full length sleeves with contrast striped ribbed cuffs',
+      '3-button closure with reinforced neckband',
+      'Contrast trim on flat-knit collar edge',
+      'Perfect balance of warmth and breathability'
+    ]
+  },
+  {
+    id: 'striped-relaxed-oversized',
+    name: 'Striped Relaxed Oversized Cotton Blend Polo',
+    subtitle: 'Relaxed horizontal bar stripes in soft easy-care cotton blend',
+    description: 'Casual relaxed-fit polo shirt with classic striped styling, soft cotton-poly blend fabric, and casual 2-button placket.',
+    stylePattern: 'Striped',
+    sleeveLength: 'Short Sleeve',
+    fit: 'Oversized',
+    fabricWeight: 'Midweight (180–210 GSM)',
+    fabricType: 'Cotton Blend',
+    closureType: '2-Button Placket',
+    fabric: '195 GSM Cotton-Poly Easy-Care Blend',
+    popularBadge: 'Relaxed Fit',
+    features: [
+      'Wide horizontal bar stripes with sharp color contrast',
+      'Relaxed, generous room through torso and arms',
+      'Clean 2-button placket with flat lay collar',
+      'Soft combed touch with fade-resistant dye'
+    ]
+  }
+];
 
 export const PRODUCTS: Product[] = [
   {
@@ -162,11 +348,11 @@ export const PRODUCTS: Product[] = [
     customizable: true
   },
   {
-    id: 'pique-polo-shirt',
-    name: 'Piqué Dotted & Solid Collar Polo Shirt',
+    id: 'polo-shirts',
+    name: 'Polo Shirts',
     category: 'polo-shirts',
-    subtitle: 'Breathable honeycomb piqué polo with dotted accents & 3-button placket',
-    description: 'Smart casual polo shirt crafted from breathable honeycomb piqué fabric with a crisp structured collar, dotted finish accents, and tailored 3-button placket. Available in an extensive range of vibrant solid colors.',
+    subtitle: 'Smart casual polo shirts with dropdown selector for all 9 premium styles',
+    description: 'Smart casual and corporate polo shirts crafted with shape-retaining ribbed collars, durable plackets, and premium combed cotton or interlock fabrics. Choose your preferred design from the dropdown below — all designs share the same uniform pricing.',
     price: 1000,
     currency: 'KSh',
     image: 'polo',
@@ -183,18 +369,37 @@ export const PRODUCTS: Product[] = [
       COMMON_COLORS.crimsonRed,
       COMMON_COLORS.mustardYellow,
       COMMON_COLORS.brightOrange,
-      COMMON_COLORS.black
+      COMMON_COLORS.black,
+      COMMON_COLORS.heatherGrey,
+      COMMON_COLORS.burgundy,
+      COMMON_COLORS.forestGreen
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
-    fabric: '220 GSM 100% Combed Cotton Honeycomb Piqué',
-    fit: 'Tailored Smart Fit',
+    fabric: '200–240 GSM Combed Cotton Piqué / Dense Interlock',
+    fit: 'Regular / Slim / Oversized',
     features: [
-      '3-button reinforced front placket',
+      'Dropdown selector for 9 distinct designs (Plain, Contrast Tipped, Striped, Long Sleeve & Oversized)',
+      '3-button or 2-button reinforced front plackets',
       'Shape-retaining ribbed collar & sleeve bands',
       'Side vents for comfortable movement',
-      'Resistant to color fading and shrinking'
+      'Resistant to color fading and shrinking',
+      'Custom printing & embroidery ready'
     ],
-    customizable: true
+    customizable: true,
+    stylePattern: 'Plain / Solid',
+    sleeveLength: 'Short Sleeve',
+    fabricWeight: 'Midweight (180–210 GSM)',
+    fabricType: 'Piqué Cotton',
+    closureType: '2-Button Placket',
+    poloAttributes: {
+      stylePattern: 'Plain / Solid',
+      sleeveLength: 'Short Sleeve',
+      fit: 'Regular Fit',
+      fabricWeight: 'Midweight (180–210 GSM)',
+      fabricType: 'Piqué Cotton',
+      closureType: '2-Button Placket'
+    },
+    poloDesigns: POLO_DESIGNS
   },
   {
     id: 'plain-tshirt',
@@ -383,6 +588,18 @@ export const PRODUCTS: Product[] = [
     customizable: true
   }
 ];
+
+// Sanitize all products to guarantee no null or undefined values in colors or sizes
+PRODUCTS.forEach((prod) => {
+  if (Array.isArray(prod.colors)) {
+    prod.colors = prod.colors.filter((c) => Boolean(c && typeof c === 'object' && c.name && c.hex));
+    if (prod.colors.length === 0) {
+      prod.colors = [COMMON_COLORS.black];
+    }
+  } else {
+    prod.colors = [COMMON_COLORS.black];
+  }
+});
 
 export const CATEGORIES: { id: ProductCategory; label: string; count: number }[] = [
   { id: 'all', label: 'All Items', count: PRODUCTS.length },

@@ -1025,7 +1025,7 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                       {/* Color dots preview */}
                       <div className="flex items-center gap-1.5 pt-1 overflow-x-auto">
                         <span className="text-[10px] font-bold text-neutral-500 mr-1">Colors:</span>
-                        {product.colors.slice(0, 6).map((c, i) => (
+                        {(product.colors || []).filter(c => Boolean(c && c.name)).slice(0, 6).map((c, i) => (
                           <span
                             key={i}
                             className="w-4 h-4 rounded-full border border-neutral-300 shrink-0"
@@ -1033,8 +1033,8 @@ export const MusoAdminPortal: React.FC<MusoAdminPortalProps> = ({
                             title={c.name}
                           />
                         ))}
-                        {product.colors.length > 6 && (
-                          <span className="text-[10px] font-bold text-neutral-400">+{product.colors.length - 6}</span>
+                        {(product.colors || []).filter(c => Boolean(c && c.name)).length > 6 && (
+                          <span className="text-[10px] font-bold text-neutral-400">+{(product.colors || []).filter(c => Boolean(c && c.name)).length - 6}</span>
                         )}
                       </div>
 
@@ -2100,12 +2100,12 @@ Please confirm stock availability and M-Pesa payment details!`}
               {/* Color Swatches Management */}
               <div>
                 <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
-                  Available Color Options ({editingProduct.colors.length} selected)
+                  Available Color Options ({(editingProduct.colors || []).filter(c => Boolean(c && c.name)).length} selected)
                 </label>
                 
                 {/* Active Colors List */}
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {editingProduct.colors.map((c, idx) => (
+                  {(editingProduct.colors || []).filter(c => Boolean(c && c.name)).map((c, idx) => (
                     <div
                       key={idx}
                       className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs font-semibold"
@@ -2118,7 +2118,8 @@ Please confirm stock availability and M-Pesa payment details!`}
                       <button
                         type="button"
                         onClick={() => {
-                          const updated = editingProduct.colors.filter((_, i) => i !== idx);
+                          const valid = (editingProduct.colors || []).filter(item => Boolean(item && item.name));
+                          const updated = valid.filter((_, i) => i !== idx);
                           setEditingProduct({ ...editingProduct, colors: updated });
                         }}
                         className="text-neutral-400 hover:text-red-500 ml-1"
@@ -2135,8 +2136,9 @@ Please confirm stock availability and M-Pesa payment details!`}
                     Click to Add from Popular Apparel Palette:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {Object.values(COMMON_COLORS).map((c) => {
-                      const alreadyAdded = editingProduct.colors.some(existing => existing.name === c.name);
+                    {Object.values(COMMON_COLORS).filter(c => Boolean(c && c.name)).map((c) => {
+                      const currentColors = (editingProduct.colors || []).filter(existing => Boolean(existing && existing.name));
+                      const alreadyAdded = currentColors.some(existing => existing.name === c.name);
                       return (
                         <button
                           key={c.name}
@@ -2145,7 +2147,7 @@ Please confirm stock availability and M-Pesa payment details!`}
                           onClick={() => {
                             setEditingProduct({
                               ...editingProduct,
-                              colors: [...editingProduct.colors, c]
+                              colors: [...currentColors, c]
                             });
                           }}
                           className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium border transition-all ${
@@ -2190,6 +2192,177 @@ Please confirm stock availability and M-Pesa payment details!`}
                   </div>
                 </div>
               </div>
+
+              {/* Polo Shirt Attributes & Dynamic Filter Tags */}
+              {editingProduct.category === 'polo-shirts' && (
+                <div className="p-4 rounded-2xl bg-[#F7F5EE] dark:bg-[#151a24] border border-[#e5dfd3] dark:border-[#2d3748] space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />
+                    <span className="text-xs font-black uppercase tracking-wider text-neutral-900 dark:text-white">
+                      Polo Shirt Attributes & Filter Tags
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    Buyers can filter polo shirts dynamically by these exact attributes.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {/* Style / Pattern */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+                        Style / Pattern
+                      </label>
+                      <select
+                        value={editingProduct.stylePattern || 'Plain / Solid'}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setEditingProduct({
+                            ...editingProduct,
+                            stylePattern: val,
+                            poloAttributes: {
+                              ...editingProduct.poloAttributes,
+                              stylePattern: val
+                            }
+                          });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1a202c] border border-[#e5dfd3] dark:border-[#2d3748] text-xs font-semibold text-neutral-900 dark:text-white outline-hidden"
+                      >
+                        <option value="Plain / Solid">Plain / Solid</option>
+                        <option value="Contrast Tipped">Contrast Tipped</option>
+                        <option value="Striped">Striped</option>
+                      </select>
+                    </div>
+
+                    {/* Sleeve Length */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+                        Sleeve Length
+                      </label>
+                      <select
+                        value={editingProduct.sleeveLength || 'Short Sleeve'}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setEditingProduct({
+                            ...editingProduct,
+                            sleeveLength: val,
+                            poloAttributes: {
+                              ...editingProduct.poloAttributes,
+                              sleeveLength: val
+                            }
+                          });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1a202c] border border-[#e5dfd3] dark:border-[#2d3748] text-xs font-semibold text-neutral-900 dark:text-white outline-hidden"
+                      >
+                        <option value="Short Sleeve">Short Sleeve</option>
+                        <option value="Long Sleeve">Long Sleeve</option>
+                      </select>
+                    </div>
+
+                    {/* Fit */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+                        Fit
+                      </label>
+                      <select
+                        value={editingProduct.fit || 'Regular Fit'}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setEditingProduct({
+                            ...editingProduct,
+                            fit: val,
+                            poloAttributes: {
+                              ...editingProduct.poloAttributes,
+                              fit: val
+                            }
+                          });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1a202c] border border-[#e5dfd3] dark:border-[#2d3748] text-xs font-semibold text-neutral-900 dark:text-white outline-hidden"
+                      >
+                        <option value="Regular Fit">Regular Fit</option>
+                        <option value="Slim Fit">Slim Fit</option>
+                        <option value="Oversized">Oversized</option>
+                      </select>
+                    </div>
+
+                    {/* Fabric Weight (GSM) */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+                        Fabric Weight (GSM)
+                      </label>
+                      <select
+                        value={editingProduct.fabricWeight || 'Midweight (180–210 GSM)'}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setEditingProduct({
+                            ...editingProduct,
+                            fabricWeight: val,
+                            poloAttributes: {
+                              ...editingProduct.poloAttributes,
+                              fabricWeight: val
+                            }
+                          });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1a202c] border border-[#e5dfd3] dark:border-[#2d3748] text-xs font-semibold text-neutral-900 dark:text-white outline-hidden"
+                      >
+                        <option value="Lightweight (<180 GSM)">Lightweight (&lt;180 GSM)</option>
+                        <option value="Midweight (180–210 GSM)">Midweight (180–210 GSM)</option>
+                        <option value="Heavyweight (220+ GSM)">Heavyweight (220+ GSM)</option>
+                      </select>
+                    </div>
+
+                    {/* Fabric Type */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+                        Fabric Type
+                      </label>
+                      <select
+                        value={editingProduct.fabricType || 'Piqué Cotton'}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setEditingProduct({
+                            ...editingProduct,
+                            fabricType: val,
+                            poloAttributes: {
+                              ...editingProduct.poloAttributes,
+                              fabricType: val
+                            }
+                          });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1a202c] border border-[#e5dfd3] dark:border-[#2d3748] text-xs font-semibold text-neutral-900 dark:text-white outline-hidden"
+                      >
+                        <option value="Piqué Cotton">Piqué Cotton</option>
+                        <option value="Interlock">Interlock</option>
+                        <option value="Cotton Blend">Cotton Blend</option>
+                      </select>
+                    </div>
+
+                    {/* Closure Type */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-700 dark:text-neutral-300 mb-1">
+                        Closure Type
+                      </label>
+                      <select
+                        value={editingProduct.closureType || '3-Button Placket'}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setEditingProduct({
+                            ...editingProduct,
+                            closureType: val,
+                            poloAttributes: {
+                              ...editingProduct.poloAttributes,
+                              closureType: val
+                            }
+                          });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1a202c] border border-[#e5dfd3] dark:border-[#2d3748] text-xs font-semibold text-neutral-900 dark:text-white outline-hidden"
+                      >
+                        <option value="2-Button Placket">2-Button Placket</option>
+                        <option value="3-Button Placket">3-Button Placket</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Available Sizes Toggle */}
               <div>

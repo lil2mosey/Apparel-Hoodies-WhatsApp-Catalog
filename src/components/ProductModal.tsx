@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Send, Ruler, Sparkles, Check, CheckCircle2, MessageSquare, Shirt, Maximize2, Minimize2, ZoomIn } from 'lucide-react';
-import { Product, ColorOption, ApparelSize, StoreContact } from '../types';
+import { X, Send, Ruler, Sparkles, Check, CheckCircle2, MessageSquare, Shirt, Maximize2, Minimize2, ZoomIn, ChevronDown } from 'lucide-react';
+import { Product, ColorOption, ApparelSize, StoreContact, PoloDesignOption } from '../types';
+import { POLO_DESIGNS } from '../data/products';
 import { ProductVisual } from './ProductVisual';
 import { formatKSh } from '../utils/whatsapp';
 
@@ -8,9 +9,10 @@ interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: Product | null;
-  onDirectOrder: (product: Product, color: ColorOption, size: ApparelSize, qty: number, customText?: string) => void;
+  onDirectOrder: (product: Product, color: ColorOption, size: ApparelSize, qty: number, customText?: string, designName?: string) => void;
   onOpenSizeGuide: (category: string) => void;
   storeContact: StoreContact;
+  initialDesignId?: string;
 }
 
 export const ProductModal: React.FC<ProductModalProps> = ({
@@ -20,11 +22,41 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onDirectOrder,
   onOpenSizeGuide,
   storeContact,
+  initialDesignId,
 }) => {
   if (!isOpen || !product) return null;
 
-  const [selectedColor, setSelectedColor] = useState<ColorOption>(product.colors[0] || { name: 'Black', hex: '#171717' });
-  const [selectedSize, setSelectedSize] = useState<ApparelSize>(product.sizes[0] || 'L');
+  const isPolo = product.category === 'polo-shirts';
+  const poloDesignList: PoloDesignOption[] = React.useMemo(() => {
+    if (product.poloDesigns && product.poloDesigns.length > 0) {
+      return product.poloDesigns;
+    }
+    return POLO_DESIGNS;
+  }, [product.poloDesigns]);
+
+  const [selectedDesignId, setSelectedDesignId] = useState<string>(() => {
+    return initialDesignId || poloDesignList[0]?.id || 'classic-solid-pique';
+  });
+
+  useEffect(() => {
+    if (initialDesignId) {
+      setSelectedDesignId(initialDesignId);
+    }
+  }, [initialDesignId]);
+
+  const currentDesign = React.useMemo(() => {
+    const found = poloDesignList.find((d) => d.id === selectedDesignId);
+    return found || poloDesignList[0];
+  }, [poloDesignList, selectedDesignId]);
+
+  const validColors = React.useMemo(() => {
+    if (!product?.colors || !Array.isArray(product.colors)) return [{ name: 'Jet Black', hex: '#171717' }];
+    const filtered = product.colors.filter((c): c is ColorOption => Boolean(c && typeof c === 'object' && c.name && c.hex));
+    return filtered.length > 0 ? filtered : [{ name: 'Jet Black', hex: '#171717' }];
+  }, [product?.colors]);
+
+  const [selectedColor, setSelectedColor] = useState<ColorOption>(validColors[0]);
+  const [selectedSize, setSelectedSize] = useState<ApparelSize>(product.sizes?.[0] || 'L');
   const [quantity, setQuantity] = useState<number>(1);
   const [customText, setCustomText] = useState<string>('');
   const [customType, setCustomType] = useState<'print' | 'embroidery'>('print');
@@ -33,8 +65,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [isZoomed, setIsZoomed] = useState(false);
   const [imageError, setImageError] = useState(false);
 
+  React.useEffect(() => {
+    if (validColors.length > 0) {
+      setSelectedColor((curr) => {
+        if (!curr || !curr.name) return validColors[0];
+        const match = validColors.find((c) => c.name === curr.name);
+        return match || validColors[0];
+      });
+    }
+  }, [validColors]);
+
   const totalPrice = product.price * quantity;
-  const photoSrc = product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
+  const designPhoto = isPolo && currentDesign ? (currentDesign.uploadedImageUrl || currentDesign.image) : undefined;
+  const photoSrc = designPhoto || product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
   const hasUploadedPhoto = Boolean(!imageError && photoSrc && photoSrc.trim().length > 0);
 
   useEffect(() => {
@@ -42,12 +85,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   }, [photoSrc]);
 
   const handleInstantWhatsApp = () => {
+    const designSummary = isPolo && currentDesign
+      ? `${currentDesign.name} (${currentDesign.sleeveLength}, ${currentDesign.fit}, ${currentDesign.fabricWeight})`
+      : undefined;
+
     onDirectOrder(
       product,
       selectedColor,
       selectedSize,
       quantity,
-      enableCustomization && customText.trim() ? customText.trim() : undefined
+      enableCustomization && customText.trim() ? customText.trim() : undefined,
+      designSummary
     );
   };
 
@@ -143,15 +191,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <div className="w-full space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
-                    1. Choose Colour ({product.colors.length}):
+                    1. Choose Colour ({validColors.length}):
                   </span>
                   <span className="text-xs font-bold text-neutral-900 dark:text-white bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-md">
-                    {selectedColor.name}
+                    {selectedColor?.name || validColors[0]?.name || 'Standard'}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {product.colors.map((col) => {
-                    const isSelected = selectedColor.name === col.name;
+                  {validColors.map((col) => {
+                    const isSelected = (selectedColor?.name || validColors[0]?.name) === col.name;
                     return (
                       <button
                         key={col.name}
@@ -184,8 +232,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
               {/* Fabric Specs Badge */}
               <div className="w-full p-3.5 bg-[#F9F8F3] dark:bg-[#12161c] rounded-2xl border border-[#e5dfd3] dark:border-[#2d3748] text-xs text-neutral-600 dark:text-neutral-300 space-y-1">
-                <p><strong>Fabric:</strong> {product.fabric}</p>
-                <p><strong>Fit:</strong> {product.fit}</p>
+                <p><strong>Fabric:</strong> {isPolo ? currentDesign.fabric : product.fabric}</p>
+                <p><strong>Fit:</strong> {isPolo ? currentDesign.fit : product.fit}</p>
               </div>
             </div>
 
@@ -193,26 +241,65 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <div className="lg:col-span-6 space-y-5">
               <div>
                 <h1 className="text-2xl font-black text-neutral-900 dark:text-white leading-tight font-heading">
-                  {product.name}
+                  {isPolo ? currentDesign.name : product.name}
                 </h1>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{product.subtitle}</p>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+                  {isPolo ? currentDesign.subtitle : product.subtitle}
+                </p>
                 <div className="flex items-baseline gap-3 mt-3">
                   <span className="text-3xl font-black text-neutral-900 dark:text-white font-mono">
                     {formatKSh(product.price)}
                   </span>
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">per item</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">per item (uniform pricing across all designs)</span>
                 </div>
               </div>
 
+              {/* Polo Shirt Design Dropdown in Modal */}
+              {isPolo && (
+                <div className="p-4 rounded-2xl bg-[#F6F3EC] dark:bg-[#1e2531] border-2 border-neutral-900 dark:border-neutral-100 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="modal-polo-design-select" className="text-xs font-black uppercase tracking-wider text-neutral-900 dark:text-white flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span>Select Polo Shirt Design / Cut:</span>
+                    </label>
+                    <span className="text-[11px] font-black text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-900/50 px-2.5 py-0.5 rounded-md border border-amber-300 dark:border-amber-700/50">
+                      Same Uniform Price ({formatKSh(product.price)})
+                    </span>
+                  </div>
+
+                  <div className="relative">
+                    <select
+                      id="modal-polo-design-select"
+                      value={currentDesign.id}
+                      onChange={(e) => setSelectedDesignId(e.target.value)}
+                      className="w-full appearance-none bg-white dark:bg-[#131822] text-neutral-900 dark:text-neutral-100 text-sm font-bold px-3.5 py-2.5 pr-9 rounded-xl border border-neutral-300 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white cursor-pointer shadow-xs"
+                    >
+                      {poloDesignList.map((design) => (
+                        <option key={design.id} value={design.id}>
+                          {design.name} — {design.sleeveLength} • {design.fit} ({design.fabricWeight})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+                  </div>
+
+                  <p className="text-xs text-neutral-600 dark:text-neutral-300 font-medium">
+                    {currentDesign.subtitle}
+                  </p>
+                </div>
+              )}
+
               <div className="border-t border-neutral-100 dark:border-neutral-800 pt-4">
-                <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">{product.description}</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                  {isPolo ? currentDesign.description : product.description}
+                </p>
               </div>
 
               {/* Features List */}
               <div className="space-y-1.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">Features:</span>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-neutral-600 dark:text-neutral-400">
-                  {product.features.map((f, i) => (
+                  {(isPolo && currentDesign.features ? currentDesign.features : product.features).map((f, i) => (
                     <li key={i} className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-neutral-800 dark:text-neutral-200 shrink-0" />
                       <span>{f}</span>
@@ -220,6 +307,70 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   ))}
                 </ul>
               </div>
+
+              {/* Polo Shirt Attributes Specifications */}
+              {isPolo && (
+                <div className="p-4 rounded-2xl bg-[#F9F7F2] dark:bg-[#151a24] border border-[#e5dfd3] dark:border-[#2d3748] space-y-2.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-neutral-800 dark:text-neutral-200 block">
+                    Polo Shirt Specifications ({currentDesign.name})
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="bg-white dark:bg-[#1f2736] p-2 rounded-xl border border-[#ece6da] dark:border-[#2b3545]">
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block">
+                        Style / Pattern
+                      </span>
+                      <span className="font-bold text-neutral-900 dark:text-white">
+                        {currentDesign.stylePattern || 'Plain / Solid'}
+                      </span>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1f2736] p-2 rounded-xl border border-[#ece6da] dark:border-[#2b3545]">
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block">
+                        Sleeve Length
+                      </span>
+                      <span className="font-bold text-neutral-900 dark:text-white">
+                        {currentDesign.sleeveLength || 'Short Sleeve'}
+                      </span>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1f2736] p-2 rounded-xl border border-[#ece6da] dark:border-[#2b3545]">
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block">
+                        Fit
+                      </span>
+                      <span className="font-bold text-neutral-900 dark:text-white">
+                        {currentDesign.fit || 'Regular Fit'}
+                      </span>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1f2736] p-2 rounded-xl border border-[#ece6da] dark:border-[#2b3545]">
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block">
+                        Fabric Weight (GSM)
+                      </span>
+                      <span className="font-bold text-neutral-900 dark:text-white">
+                        {currentDesign.fabricWeight || 'Midweight (180–210 GSM)'}
+                      </span>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1f2736] p-2 rounded-xl border border-[#ece6da] dark:border-[#2b3545]">
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block">
+                        Fabric Type
+                      </span>
+                      <span className="font-bold text-neutral-900 dark:text-white">
+                        {currentDesign.fabricType || 'Piqué Cotton'}
+                      </span>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1f2736] p-2 rounded-xl border border-[#ece6da] dark:border-[#2b3545]">
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 dark:text-neutral-500 block">
+                        Closure Type
+                      </span>
+                      <span className="font-bold text-neutral-900 dark:text-white">
+                        {currentDesign.closureType || '2-Button Placket'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Size Selection */}
               <div className="space-y-2 border-t border-neutral-100 dark:border-neutral-800 pt-4">

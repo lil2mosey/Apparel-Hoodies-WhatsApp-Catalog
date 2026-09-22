@@ -15,6 +15,13 @@
         "inStock": { "type": "boolean", "description": "Stock status" },
         "colors": { "type": "array", "description": "Available colors" },
         "sizes": { "type": "array", "description": "Available sizes" },
+        "stylePattern": { "type": "string", "description": "Style/Pattern: Plain / Solid, Contrast Tipped, Striped" },
+        "sleeveLength": { "type": "string", "description": "Sleeve Length: Short Sleeve, Long Sleeve" },
+        "fit": { "type": "string", "description": "Fit: Regular Fit, Slim Fit, Oversized" },
+        "fabricWeight": { "type": "string", "description": "Fabric Weight: Lightweight (<180 GSM), Midweight (180–210 GSM), Heavyweight (220+ GSM)" },
+        "fabricType": { "type": "string", "description": "Fabric Type: Piqué Cotton, Interlock, Cotton Blend" },
+        "closureType": { "type": "string", "description": "Closure Type: 2-Button Placket, 3-Button Placket" },
+        "poloAttributes": { "type": "object", "description": "Nested object of all polo filter attributes" },
         "updatedAt": { "type": "string", "description": "Timestamp of last update" }
       },
       "required": ["id", "name", "price"]

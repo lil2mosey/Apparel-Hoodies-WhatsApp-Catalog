@@ -44,6 +44,9 @@ export function generateCartWhatsAppMessage(
   cartItems.forEach((item, index) => {
     const itemTotal = item.unitPrice * item.quantity;
     itemsList += `\n*${index + 1}. ${item.productName}*\n`;
+    if (item.selectedDesign && item.selectedDesign.trim()) {
+      itemsList += `   • *Design / Style:* ${item.selectedDesign.trim()}\n`;
+    }
     itemsList += `   • *Color:* ${item.selectedColor.name}\n`;
     itemsList += `   • *Size:* ${item.selectedSize}\n`;
     itemsList += `   • *Quantity:* ${item.quantity} pcs\n`;
@@ -92,13 +95,17 @@ export function generateSingleItemWhatsAppMessage(
   customText: string,
   customerName: string,
   customerLocation: string,
-  storeContact: StoreContact
+  storeContact: StoreContact,
+  selectedDesign?: string
 ): string {
   const itemTotal = product.price * quantity;
 
   let msg = `👋 *ORDER INQUIRY - ${storeContact.businessName.toUpperCase()}*\n\n`;
   msg += `Hello! I would like to order:\n\n`;
   msg += `🧥 *Item:* ${product.name}\n`;
+  if (selectedDesign && selectedDesign.trim()) {
+    msg += `✨ *Design / Style:* ${selectedDesign.trim()}\n`;
+  }
   msg += `🎨 *Color:* ${selectedColor.name}\n`;
   msg += `📏 *Size:* ${selectedSize}\n`;
   msg += `🔢 *Quantity:* ${quantity} pcs\n`;

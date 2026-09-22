@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, MessageSquare, Send, Check, Sparkles, Copy, ArrowRight, ShieldCheck } from 'lucide-react';
-import { Product, ColorOption, ApparelSize, StoreContact } from '../types';
+import { X, MessageSquare, Send, Check, Sparkles, Copy, ArrowRight, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Product, ColorOption, ApparelSize, StoreContact, PoloDesignOption } from '../types';
+import { POLO_DESIGNS } from '../data/products';
 import { ProductVisual } from './ProductVisual';
 import { generateSingleItemWhatsAppMessage, createWhatsAppUrl, formatKSh } from '../utils/whatsapp';
 
@@ -11,6 +12,7 @@ interface DirectOrderModalProps {
   initialColor?: ColorOption;
   initialSize?: ApparelSize;
   initialQuantity?: number;
+  initialDesign?: string;
   storeContact: StoreContact;
 }
 
@@ -21,16 +23,53 @@ export const DirectOrderModal: React.FC<DirectOrderModalProps> = ({
   initialColor,
   initialSize,
   initialQuantity = 1,
+  initialDesign,
   storeContact,
 }) => {
   if (!isOpen || !product) return null;
 
-  const [selectedColor, setSelectedColor] = useState<ColorOption>(
-    initialColor || product.colors[0] || { name: 'Black', hex: '#171717' }
-  );
+  const isPolo = product.category === 'polo-shirts';
+  const poloDesignList: PoloDesignOption[] = product.poloDesigns && product.poloDesigns.length > 0
+    ? product.poloDesigns
+    : POLO_DESIGNS;
+
+  const [selectedDesign, setSelectedDesign] = useState<string>(() => {
+    if (initialDesign && initialDesign.trim().length > 0) return initialDesign;
+    return poloDesignList[0]?.name || 'Classic Solid Piqué Polo';
+  });
+
+  const validColors = React.useMemo(() => {
+    if (!product?.colors || !Array.isArray(product.colors)) return [{ name: 'Jet Black', hex: '#171717' }];
+    const filtered = product.colors.filter((c): c is ColorOption => Boolean(c && typeof c === 'object' && c.name && c.hex));
+    return filtered.length > 0 ? filtered : [{ name: 'Jet Black', hex: '#171717' }];
+  }, [product?.colors]);
+
+  const [selectedColor, setSelectedColor] = useState<ColorOption>(() => {
+    if (initialColor && initialColor.name) return initialColor;
+    return validColors[0];
+  });
   const [selectedSize, setSelectedSize] = useState<ApparelSize>(
-    initialSize || product.sizes[0] || 'L'
+    initialSize || product.sizes?.[0] || 'L'
   );
+
+  React.useEffect(() => {
+    if (initialColor && initialColor.name) {
+      setSelectedColor(initialColor);
+    } else if (validColors.length > 0) {
+      setSelectedColor((curr) => {
+        if (!curr || !curr.name) return validColors[0];
+        const match = validColors.find((c) => c.name === curr.name);
+        return match || validColors[0];
+      });
+    }
+  }, [initialColor, validColors]);
+
+  React.useEffect(() => {
+    if (initialDesign) {
+      setSelectedDesign(initialDesign);
+    }
+  }, [initialDesign]);
+
   const [quantity, setQuantity] = useState<number>(initialQuantity);
   const [customText, setCustomText] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>('');
@@ -39,7 +78,9 @@ export const DirectOrderModal: React.FC<DirectOrderModalProps> = ({
   const [imageError, setImageError] = useState(false);
 
   const itemTotal = product.price * quantity;
-  const photoSrc = product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
+  const selectedDesignObj = isPolo ? (product.poloDesigns || POLO_DESIGNS).find(d => d.name === selectedDesign || d.id === selectedDesign) : undefined;
+  const designPhoto = selectedDesignObj ? (selectedDesignObj.uploadedImageUrl || selectedDesignObj.image) : undefined;
+  const photoSrc = designPhoto || product.uploadedImageUrl || (product.image && (product.image.startsWith('data:image/') || product.image.startsWith('http://') || product.image.startsWith('https://') || product.image.startsWith('/')) ? product.image : undefined);
   const hasUploadedPhoto = Boolean(!imageError && photoSrc && photoSrc.trim().length > 0);
 
   const messageText = generateSingleItemWhatsAppMessage(
@@ -50,7 +91,8 @@ export const DirectOrderModal: React.FC<DirectOrderModalProps> = ({
     customText,
     customerName,
     customerLocation,
-    storeContact
+    storeContact,
+    isPolo ? selectedDesign : undefined
   );
 
   const handleOpenWhatsApp = () => {
@@ -131,16 +173,40 @@ export const DirectOrderModal: React.FC<DirectOrderModalProps> = ({
             </div>
           </div>
 
+          {/* Polo Shirt Design Selector if applicable */}
+          {isPolo && (
+            <div className="p-3.5 rounded-2xl bg-[#F6F3EC] dark:bg-[#12161c] border border-neutral-300 dark:border-neutral-700 space-y-2">
+              <label htmlFor="direct-order-polo-design-select" className="block text-xs font-bold uppercase tracking-wider text-neutral-800 dark:text-neutral-200">
+                Polo Shirt Design: <span className="text-amber-700 dark:text-amber-400 font-black">Same Uniform Price</span>
+              </label>
+              <div className="relative">
+                <select
+                  id="direct-order-polo-design-select"
+                  value={selectedDesign}
+                  onChange={(e) => setSelectedDesign(e.target.value)}
+                  className="w-full appearance-none bg-white dark:bg-[#1a202c] text-neutral-900 dark:text-white text-xs font-bold px-3 py-2.5 pr-8 rounded-xl border border-neutral-300 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white cursor-pointer"
+                >
+                  {poloDesignList.map((design) => (
+                    <option key={design.id} value={`${design.name} (${design.sleeveLength}, ${design.fit})`}>
+                      {design.name} — {design.sleeveLength} • {design.fit} ({design.fabricWeight})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+              </div>
+            </div>
+          )}
+
           {/* Color Selection */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
-                1. Select Color: <span className="text-neutral-900 dark:text-white font-bold">{selectedColor.name}</span>
+                1. Select Color: <span className="text-neutral-900 dark:text-white font-bold">{selectedColor?.name || validColors[0]?.name || 'Standard'}</span>
               </label>
             </div>
             <div className="flex flex-wrap gap-2">
-              {product.colors.map((col) => {
-                const isSelected = selectedColor.name === col.name;
+              {validColors.map((col) => {
+                const isSelected = (selectedColor?.name || validColors[0]?.name) === col.name;
                 return (
                   <button
                     key={col.name}
